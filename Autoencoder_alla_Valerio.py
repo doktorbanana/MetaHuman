@@ -210,7 +210,17 @@ class Autoencoder:
         print(f"This model was trained with {autoencoder.num_of_train_data} wavesets and has a {autoencoder.latent_space_dim}D latent space")
         return autoencoder
 
+
 if __name__ == "__main__":
+    """
+    -----------------
+    Loading the Data
+    -----------------
+    """
+    subfolder = "1.0_16"
+    x_train = np.load("data_and_models\\" + subfolder + "\\spectos.npy")
+    x_train = x_train[:50000]
+
     """
     ------------------------
     Buildung the Autoencoder
@@ -218,7 +228,7 @@ if __name__ == "__main__":
     """
 
     autoencoder = Autoencoder(
-        input_shape=(128, 8, 1),
+        input_shape=(x_train[0].shape[0], x_train[0].shape[1], x_train[0].shape[2]),
         conv_filters=(32, 64, 64, 64),
         conv_kernels=(3, 3, 3, 3),
         conv_strides=(1, 2, 2, 1),
