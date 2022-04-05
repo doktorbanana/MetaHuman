@@ -1,5 +1,5 @@
 venv/
-datasets/
+data_and_models/*
 .vscode/
 .idea/
 _build/
@@ -9,6 +9,10 @@ _templates/
 *.parquet
 Untitled*.ipynb
 *.protobuf
+*.wav
+*.npy
+*.pkl
+*.h5	
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -36,6 +40,8 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+
 MANIFEST
 
 # PyInstaller
@@ -204,4 +210,3 @@ $RECYCLE.BIN/
 01_midi_drums/trying-out-python.ipynb
 01_midi_drums/session-27-04-2021.ipynb
 
-.wav

@@ -294,9 +294,9 @@ if __name__ == "__main__":
     Loading the Data
     -----------------
     """
-    subfolder = "0.25_6"
-    x_train = np.load("data_and_models\\" + subfolder + "\\drum_spectos.npy")
-    x_train = x_train[:1000]
+    subfolder = "0.25_16"
+    x_train = np.load("data_and_models\\" + subfolder + "\\towner_spectos.npy")
+    #x_train = x_train[:1000]
 
     """
     ------------------------
@@ -329,14 +329,13 @@ if __name__ == "__main__":
     autoencoder.compile_model(LEARNING_RATE)
     autoencoder.train(x_train, BATCH_SIZE, EPOCHS)
 
-
     """
     ----------------
     Save VAE
     ----------------
     """
 
-    save_path = "data_and_models\\" + subfolder + "\\VAE_" + str(autoencoder.latent_space_dim) + "D_" + str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
+    save_path = "data_and_models\\" + subfolder + "\\VAE_towner_" + str(autoencoder.latent_space_dim) + "D_" + str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
     autoencoder.save(save_path)
     #test_load = VAE.load(save_path)
     #test_load.summary()

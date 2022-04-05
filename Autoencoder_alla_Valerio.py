@@ -232,7 +232,7 @@ if __name__ == "__main__":
         conv_filters=(32, 64, 64, 64),
         conv_kernels=(3, 3, 3, 3),
         conv_strides=(1, 2, 2, 1),
-        latent_space_dim=2
+        latent_space_dim=128
     )
 
     autoencoder.summary()
@@ -242,18 +242,6 @@ if __name__ == "__main__":
     Train the Autoencoder
     ---------------------
     """
-
-    subfolder = "0.5_67"
-
-
-    def load_data():
-        spectogram_data = np.load("data\\" + subfolder + "spectos.npy")
-        song_labels = np.load("data\\" + subfolder + "song_labels.npy")
-        position_labels = np.load("data\\" + subfolder + "position_labels.npy")
-        return spectogram_data
-
-
-    x_train = load_data()
 
     LEARNING_RATE = 0.0005
     BATCH_SIZE = 64
