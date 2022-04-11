@@ -2,8 +2,10 @@ import mouse, keyboard
 import time
 
 def click_next_video():
-    mouse.move(1632, 170)
+    mouse.move(744, 452)
     mouse.click()
+    time.sleep(1)
+    keyboard.send("shift+n")
     time.sleep(1)
 
 def copy_link():
@@ -16,8 +18,11 @@ if __name__ == '__main__':
 
     # while True:
     #    print(mouse.get_position())
-    time.sleep(15) # time to change the window to Youtube
+    time.sleep(5) # time to change the window to Youtube
 
-    for i in range(10):
-        click_next_video()
+    for i in range(100):
+        if keyboard.is_pressed("space"):
+            exit()
         copy_link()
+        click_next_video()
+        print(i)

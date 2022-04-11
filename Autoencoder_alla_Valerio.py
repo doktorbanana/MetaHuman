@@ -1,5 +1,5 @@
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Input, Conv2D, ReLU, BatchNormalization, Flatten, Dense, Reshape, Conv2DTranspose, Activation
+from tensorflow.keras.layers import Input, Conv2D, Masking, ReLU, BatchNormalization, Flatten, Dense, Reshape, Conv2DTranspose, Activation
 from tensorflow.keras import backend as K
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
@@ -35,9 +35,6 @@ class Autoencoder:
 
         self._build()
 
-    @classmethod
-    def test(cls):
-        print("test")
 
     def _build(self):
         self._build_encoder()
@@ -52,10 +49,16 @@ class Autoencoder:
 
     def _build_encoder(self):
         encoder_input = Input(shape=self.input_shape, name="Encoder_Input")
+        #masking_layer = self._add_masking_layer(encoder_input)
         conv_layers = self._add_conv_layers(encoder_input)
         bottleneck = self._add_bottleneck(conv_layers)
         self._model_input = encoder_input
         self.encoder = Model(encoder_input, bottleneck, name="Encoder")
+
+    def _add_masking_layer(self, encoder_input):
+        x = encoder_input
+        x = Masking()(x)
+        return x
 
     def _add_conv_layers(self, encoder_input):
         x = encoder_input
@@ -148,7 +151,7 @@ class Autoencoder:
     def compile_model(self, learning_rate=0.0001):
         optimizer = Adam(learning_rate=learning_rate)
         mse_loss = MeanSquaredError()
-        self.model.compile(optimizer=optimizer, loss=mse_loss, metrics=["mse", "acc"])
+        self.model.compile(optimizer=optimizer, loss=mse_loss)
 
     def train(self, x_train, batch_size, num_epochs):
         self.num_of_train_data = x_train.shape[0]

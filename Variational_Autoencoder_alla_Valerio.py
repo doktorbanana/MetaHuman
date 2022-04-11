@@ -295,7 +295,7 @@ if __name__ == "__main__":
     -----------------
     """
     subfolder = "0.25_16"
-    x_train = np.load("data_and_models\\" + subfolder + "\\towner_spectos.npy")
+    x_train = np.load("data_and_models\\" + subfolder + "\\spectos.npy")
     #x_train = x_train[:1000]
 
     """
@@ -335,7 +335,7 @@ if __name__ == "__main__":
     ----------------
     """
 
-    save_path = "data_and_models\\" + subfolder + "\\VAE_towner_" + str(autoencoder.latent_space_dim) + "D_" + str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
+    save_path = "data_and_models\\" + subfolder + "\\VAE_Vocals_" + str(autoencoder.latent_space_dim) + "D_" + str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
     autoencoder.save(save_path)
     #test_load = VAE.load(save_path)
     #test_load.summary()

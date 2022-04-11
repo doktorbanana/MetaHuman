@@ -1,11 +1,11 @@
 from Variational_Autoencoder_alla_Valerio import VAE
-from SoundGenerator_new import SoundGenerator
+from Snippets import Snippets
 
 class Conversator:
-    def __init__(self, model_path, partner, hop_length, n_fft, win_length):
-        self.autoencoder = VAE.load(model_path)
+    def __init__(self, snippet_model_path, order_model_path, partner, hop_length, n_fft, win_length):
+        self.snippet_autoencoder = VAE.load(snippet_model_path)
+        self.order_autoencoder = VAE.load(order_model_path)
         self.partner = partner
-        self.sound_generator = SoundGenerator(self.autoencoder, hop_length=hop_length, win_size=win_length, n_fft=n_fft)
         self.last_song_heard = None
 
     """
@@ -16,7 +16,7 @@ class Conversator:
     send it to its partner.
     """
     def sing(self, song_order):
-        pca_data = SoundGenerator.generate_Song()
+        pca_data =
     
 
         pass
