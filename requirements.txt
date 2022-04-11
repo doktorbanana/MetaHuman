@@ -1,5 +1,6 @@
 jupyterlab==3.2.4
-numpy==1.20.3
+numpy==1.19.5
 matplotlib==3.4.1
 librosa
-tensorflow==2.7.0
+tensorflow==2.5.0
+spleeter = 2.3.0
