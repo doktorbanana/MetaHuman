@@ -18,12 +18,25 @@ class Snippets:
         self.n_fft = n_fft
         self.hop_length = hop_length
 
+    def _delete_silence(self, pcm, min_size):
+        new_pcm = []
+        for i in range(0, len(pcm), min_size):
+            frame = pcm[i:i + min_size]
+            rms = math.sqrt(sum(frame ** 2)) / len(frame)
+            if rms > 0.00001:
+                new_pcm.append(frame)
+        return np.array(new_pcm).flatten()
+
     def get_snippet_spectos(self):
-        self._get_splitPoints()
-        snippets = self._generate_snippets()
-        spectos = self._get_mel_spectos(snippets)
-        normalized_spectos = self._normalise(np.asarray(spectos), 0, 1, -100, 100)
-        return normalized_spectos
+        self.data = self._delete_silence(self.data, 2 * self.sr)
+        if len(self.data) > 0:
+            self._get_splitPoints()
+            snippets = self._generate_snippets()
+            spectos = self._get_mel_spectos(snippets)
+            normalized_spectos = self._normalise(np.asarray(spectos), 0, 1, -100, 100)
+            return normalized_spectos
+        else:
+            return None
 
     def _get_splitPoints(self):
         for i in range(int(len(self.data) / self.min_size)):
@@ -63,7 +76,8 @@ class Snippets:
             spectograms.append(spectogram)
         return spectograms
 
-    def _normalise(self, array, new_min, new_max, old_min, old_max):
+    @staticmethod
+    def _normalise(array, new_min, new_max, old_min, old_max):
         norm_array = (array - old_min) / (old_max - old_min)
         norm_array = norm_array * (new_max - new_min) + new_min
         return norm_array
@@ -124,6 +138,7 @@ class Snippets:
             reconstructed_data = np.append(reconstructed_data,signal)
             clipped_spectos.append(clipped_specto)
             print(f"Reconstructed {i + 1} of {len(spectos)} spectos", end="\r")
+        reconstructed_data = reconstructed_data.flatten()
         return reconstructed_data, clipped_spectos
 
     @staticmethod

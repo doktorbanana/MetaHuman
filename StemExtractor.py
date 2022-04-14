@@ -19,8 +19,8 @@ def _check_rms(data, path="Unkown"):
 
 if __name__ == '__main__':
     separator = Separator('spleeter:2stems')
-
-    list_of_files = glob.glob('demo_data\\YouTubeSongs\\*')
+    subfolder = 1500
+    list_of_files = glob.glob('demo_data\\YouTubeSongs\\' + str(subfolder) + '\\*')
    # print(list_of_files)
     start_time = time.time()
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         prediction = separator.separate(waveform)
         vocals = prediction["vocals"]
         empty = _check_rms(vocals, file)
-        save_path = "demo_data\\stems\\voclas" + str(i) +".wav"
+        save_path = "demo_data\\stems\\voclas" + str(i + (subfolder-100)) +".wav"
         if empty<1:
             sf.write(file=save_path, data=vocals, samplerate=44100)
         print(str(i+1) + " of " + str(len(list_of_files)) +" Songs done")

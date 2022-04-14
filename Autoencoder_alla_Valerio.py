@@ -17,13 +17,15 @@ AUTOENCODER CLASS
 
 class Autoencoder:
 
-    def __init__(self, input_shape, conv_filters, conv_kernels, conv_strides, latent_space_dim, num_of_train_data=None):
+    def __init__(self, input_shape, conv_filters, conv_kernels, conv_strides, latent_space_dim, num_of_train_data=None,
+                 mask_value=0):
         self.input_shape = input_shape  # dimension of input data: frequency-bins, time-windows, amplitude
         self.conv_filters = conv_filters  # a list with the number of filters per layer
         self.conv_kernels = conv_kernels  # a list with the kernel size per layer
         self.conv_strides = conv_strides  # a list with the strides per layer
         self.latent_space_dim = latent_space_dim
         self._shape_before_bottleneck = None
+        self.mask_value = mask_value
 
         self.encoder = None
         self.decoder = None
@@ -49,16 +51,10 @@ class Autoencoder:
 
     def _build_encoder(self):
         encoder_input = Input(shape=self.input_shape, name="Encoder_Input")
-        #masking_layer = self._add_masking_layer(encoder_input)
         conv_layers = self._add_conv_layers(encoder_input)
         bottleneck = self._add_bottleneck(conv_layers)
         self._model_input = encoder_input
         self.encoder = Model(encoder_input, bottleneck, name="Encoder")
-
-    def _add_masking_layer(self, encoder_input):
-        x = encoder_input
-        x = Masking()(x)
-        return x
 
     def _add_conv_layers(self, encoder_input):
         x = encoder_input
@@ -74,7 +70,7 @@ class Autoencoder:
             strides=self.conv_strides[layer_index],
             padding="same",
             name=f"Encoder_Conv_Layer_{layer_index + 1}")
-        x = conv_layer(x)  # apply the new conv to x -> Convultion with kernels give multiple 2D Arrays
+        x = conv_layer(x)  # apply the new conv to x -> Convolution with kernels give multiple 2D Arrays
         x = ReLU(name=f"Encoder_ReLU_{layer_index + 1}")(x)  # apply a ReLU activation to x
         x = BatchNormalization(name=f"Encoder_BN_{layer_index + 1}")(
             x)  # apply Batch Normalization to x (less overfitting-problems, no vanishing Gradient or exploding Gradient)
