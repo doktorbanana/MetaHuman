@@ -289,54 +289,60 @@ class LambdaLayer(tf.keras.layers.Layer):
 
 if __name__ == "__main__":
 
-    """
-    -----------------
-    Loading the Data
-    -----------------
-    """
-    subfolder = "0.25_16"
-    x_train = np.load("data_and_models\\" + subfolder + "\\spectos.npy")
-    #x_train = x_train[:1000]
+    autoencoder = None
 
-    """
-    ------------------------
-    Buildung the VAE
-    ------------------------
-    """
+    for i in range(3):
 
-    autoencoder = VAE(
-        input_shape=(x_train[0].shape[0], x_train[0].shape[1], x_train[0].shape[2]),
-        conv_filters=(512, 256, 128, 64, 32),
-        conv_kernels=(3, 3, 3, 3, 3),
-        conv_strides=(2, 2, 2, 2, (2,1)),
-        latent_space_dim=128
-    )
+        num = (i+1) * 500
+        """
+        -----------------
+        Loading the Data
+        -----------------
+        """
 
-    autoencoder.summary()
+        subfolder = "0.25_16"
+        x_train = np.load("data_and_models\\" + subfolder + "\\spectos" + str(num) + ".npy")
 
-    print(x_train.shape)
+        """
+        ------------------------
+        Buildung the VAE
+        ------------------------
+        """
 
-    """
-    ---------------------
-    Train the VAE
-    ---------------------
-    """
+        if autoencoder is None:
+            autoencoder = VAE(
+                input_shape=(x_train[0].shape[0], x_train[0].shape[1], x_train[0].shape[2]),
+                conv_filters=(512, 256, 128, 64, 32),
+                conv_kernels=(3, 3, 3, 3, 3),
+                conv_strides=(2, 2, 2, 2, (2,1)),
+                latent_space_dim=128
+            )
+            autoencoder.summary()
 
-    LEARNING_RATE = 0.0005
-    BATCH_SIZE = 32
-    EPOCHS = 20
+            LEARNING_RATE = 0.0005
+            BATCH_SIZE = 256
+            EPOCHS = 20
 
-    autoencoder.compile_model(LEARNING_RATE)
-    autoencoder.train(x_train, BATCH_SIZE, EPOCHS)
+            autoencoder.compile_model(LEARNING_RATE)
 
-    """
-    ----------------
-    Save VAE
-    ----------------
-    """
+        print(x_train.shape)
 
-    save_path = "data_and_models\\" + subfolder + "\\VAE_Vocals_" + str(autoencoder.latent_space_dim) + "D_" + str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
-    autoencoder.save(save_path)
-    #test_load = VAE.load(save_path)
-    #test_load.summary()
+        """
+        ---------------------
+        Train the VAE
+        ---------------------
+        """
+
+        autoencoder.train(x_train, BATCH_SIZE, EPOCHS)
+
+        """
+        ----------------
+        Save VAE
+        ----------------
+        """
+
+        save_path = "data_and_models\\" + subfolder + "\\Valerio_" + str(autoencoder.latent_space_dim) + "D_" + str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
+        autoencoder.save(save_path)
+        #test_load = VAE.load(save_path)
+        #test_load.summary()
 
