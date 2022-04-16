@@ -78,10 +78,8 @@ class VAE:
         x = ReLU(name=f"encoder_relu_{layer_index + 1}")(x)  # apply a ReLU activation to x
         x = BatchNormalization(name=f"encoder_bn_{layer_index + 1}")(
             x)  # apply Batch Normalization to x
-                # (less overfitting-problems, no vanishing Gradient or exploding Gradient)
+        # (less overfitting-problems, no vanishing Gradient or exploding Gradient)
         return x
-
-
 
     def _add_bottleneck(self, x):
         self._shape_before_bottleneck = K.int_shape(x)[1:]  # Ignore the first dim, which is the batch size
@@ -103,7 +101,6 @@ class VAE:
         """
         x = LambdaLayer(self.latent_space_dim)([self.mu, self.log_variance])
         return x
-
 
     """
     ------------
@@ -164,6 +161,7 @@ class VAE:
     VAE Part 
     ------------
     """
+
     def compile_model(self, learning_rate=0.0001):
         optimizer = Adam(learning_rate=learning_rate)
         self.model.compile(optimizer=optimizer,
@@ -184,17 +182,16 @@ class VAE:
         reconstruction_loss = K.mean(K.square(error), axis=[1, 2, 3])  # mean squared error
         return reconstruction_loss
 
-
-
     def train(self, x_train, x_test, batch_size, num_epochs):
         self.num_of_train_data += x_train.shape[0]
-        self.model.fit(x_train,
-                       x_train,
-                       batch_size=batch_size,
-                       epochs=num_epochs,
-                       shuffle=True,
-                       validation_data=(x_test, x_test)
-                       )
+        hist = self.model.fit(x_train,
+                              x_train,
+                              batch_size=batch_size,
+                              epochs=num_epochs,
+                              shuffle=True,
+                              validation_data=(x_test, x_test)
+                              )
+        return hist
 
     def _build_autoencoder(self):
         model_input = self._model_input
@@ -250,7 +247,6 @@ class VAE:
         with open(optimizer_path, 'wb') as f:
             pickle.dump(weight_values, f)
 
-
     @classmethod
     def load(cls, save_folder=".", learning_rate=0.0001):
         # Load the parameters:
@@ -282,6 +278,8 @@ class VAE:
 Custom Layer
 -------------
 """
+
+
 class LambdaLayer(tf.keras.layers.Layer):
     def __init__(self, latent_space_dim):
         super(LambdaLayer, self).__init__()
@@ -325,7 +323,7 @@ if __name__ == "__main__":
         input_shape=(x_train[0].shape[0], x_train[0].shape[1], x_train[0].shape[2]),
         conv_filters=(512, 256, 128, 64, 32),
         conv_kernels=(3, 3, 3, 3, 3),
-        conv_strides=(2, 2, 2, 2, (2,1)),
+        conv_strides=(2, 2, 2, 2, (2, 1)),
         latent_space_dim=128
     )
 
@@ -341,24 +339,27 @@ if __name__ == "__main__":
 
     LEARNING_RATE = 0.0005
     BATCH_SIZE = 10
-    EPOCHS = 20
+    EPOCHS = 5
 
     autoencoder.compile_model(LEARNING_RATE)
-    steps= 1800
+    steps = 1800
+    history = []
+    val_history = []
 
-    for i in range(steps):
-        num = int(x_train.shape[0] / steps) * (i+1)
+    for i in range(2):
+        num = int(x_train.shape[0] / steps) * (i + 1)
         test_num = int(x_test.shape[0] / steps) * (i + 1)
 
-        print("Train from index " + str(int(num-(num/(i+1)))) + " to index " + str(num))
-        print("Use test indices " + str(int(test_num-(test_num/(i+1)))) + " to " + str(test_num) +
+        print("Train from index " + str(int(num - (num / (i + 1)))) + " to index " + str(num))
+        print("Use test indices " + str(int(test_num - (test_num / (i + 1)))) + " to " + str(test_num) +
               " as validation set")
 
-        train_subset = x_train[int(num-(num/(i+1))):num]
-        test_subset = x_test[int(test_num-(test_num/(i+1))):test_num]
+        train_subset = x_train[int(num - (num / (i + 1))):num]
+        test_subset = x_test[int(test_num - (test_num / (i + 1))):test_num]
 
-        autoencoder.train(train_subset, test_subset, BATCH_SIZE, EPOCHS)
-
+        step_history = autoencoder.train(train_subset, test_subset, BATCH_SIZE, EPOCHS)
+        history.extend(step_history.history['loss'])
+        val_history.extend(step_history.history['val_loss'])
         """
         ----------------
         Save VAE
@@ -366,11 +367,44 @@ if __name__ == "__main__":
         """
 
         save_path = os.path.join("data_and_models", subfolder)
-        name =  "VAE_Vocals_" + str(autoencoder.latent_space_dim) + "D_" + str(
-        autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
-        save_path = os.path.join(save_path, name)
-        autoencoder.save(save_path)
+        name = "VAE_Vocals_" + str(autoencoder.latent_space_dim) + "D_" + \
+               str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
+        model_path = os.path.join(save_path, name)
+        autoencoder.save(model_path)
 
         print("saved at: " + save_path)
 
+
+    """
+    Save the History
+    """
+    history = np.asarray(history)
+    val_history = np.asarray(val_history)
+
+    hist_save_path = os.path.join(save_path, "history.npy")
+    val_hist_save_path = os.path.join(save_path, "val_history.npy")
+
+
+
+    with open(hist_save_path, 'wb') as f:
+        np.save(f, history)
+        np.save(f, val_history)
+
+    # with open(hist_save_path, 'rb') as f:
+    #     history = np.load(f)
+    #     val_history = np.load(f)
+
+    plt.figure()
+    plt.plot(history)
+    plt.xlabel("Epochs")
+    plt.xlabel("Loss")
+    plt.title("Loss History")
+    plt.show()
+
+    plt.figure()
+    plt.plot(val_history)
+    plt.xlabel("Epochs")
+    plt.xlabel("Validation Loss")
+    plt.title("Validation Loss History")
+    plt.show()
 
