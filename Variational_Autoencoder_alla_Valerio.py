@@ -309,7 +309,9 @@ if __name__ == "__main__":
     -----------------
     """
     subfolder = "4.0_256"
-    data = np.load("data_and_models/" + subfolder + "/spectos500.npy")
+    load_path = os.path.join("data_and_models", subfolder)
+    load_path = os.path.join(load_path, "spectos500.npy")
+    data = np.load(load_path)
     x_train, x_test, _, _ = train_test_split(data, data, test_size=0.2)
     del data
 
@@ -329,7 +331,7 @@ if __name__ == "__main__":
 
     autoencoder.summary()
 
-    print(x_train.shape)
+    print("Shape of the training data: " + str(x_train.shape))
 
     """
     ---------------------
@@ -342,7 +344,7 @@ if __name__ == "__main__":
     EPOCHS = 20
 
     autoencoder.compile_model(LEARNING_RATE)
-    steps= 18
+    steps= 1800
 
     for i in range(steps):
         num = int(x_train.shape[0] / steps) * (i+1)
@@ -357,16 +359,18 @@ if __name__ == "__main__":
 
         autoencoder.train(train_subset, test_subset, BATCH_SIZE, EPOCHS)
 
-        save_path = "data_and_models/" + subfolder + "/VAE_Vocals_" + str(autoencoder.latent_space_dim) + "D_" + str(
-        autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
-
         """
         ----------------
         Save VAE
         ----------------
         """
 
+        save_path = os.path.join("data_and_models", subfolder)
+        name =  "VAE_Vocals_" + str(autoencoder.latent_space_dim) + "D_" + str(
+        autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
+        save_path = os.path.join(save_path, name)
         autoencoder.save(save_path)
+
         print("saved at: " + save_path)
 
 
