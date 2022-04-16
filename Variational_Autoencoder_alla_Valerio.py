@@ -10,6 +10,7 @@ import numpy as np
 import os
 import pickle
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
 
 tf.compat.v1.disable_eager_execution()
 
@@ -185,13 +186,14 @@ class VAE:
 
 
 
-    def train(self, x_train, batch_size, num_epochs):
+    def train(self, x_train, x_test, batch_size, num_epochs):
         self.num_of_train_data += x_train.shape[0]
         self.model.fit(x_train,
                        x_train,
                        batch_size=batch_size,
                        epochs=num_epochs,
-                       shuffle=True
+                       shuffle=True,
+                       validation_data=(x_test, x_test)
                        )
 
     def _build_autoencoder(self):
@@ -214,7 +216,8 @@ class VAE:
         self._create_folder(save_folder)
         self._save_parameters(save_folder)
         self._save_weights(save_folder)
-        self.model.save(save_folder + "\\" + "model.h5") # recursion error. too many trainable parameters?
+        self._save_optimizer_state(save_folder)
+        self.model.save(save_folder + "\\" + "model.h5")
 
     def _create_folder(self, save_folder):
         if not os.path.exists(save_folder):
@@ -239,27 +242,38 @@ class VAE:
         save_path = os.path.join(save_folder, "weights.h5")
         self.model.save_weights(save_path)
 
+    def _save_optimizer_state(self, save_folder):
+        # Save optimizer weights.
+        symbolic_weights = getattr(self.model.optimizer, 'weights')
+        weight_values = K.batch_get_value(symbolic_weights)
+        optimizer_path = os.path.join(save_folder, "optimizer.pkl")
+        with open(optimizer_path, 'wb') as f:
+            pickle.dump(weight_values, f)
+
+
     @classmethod
-    def load(cls, save_folder="."):
+    def load(cls, save_folder=".", learning_rate=0.0001):
         # Load the parameters:
         parameters_path = os.path.join(save_folder, "parameters.pkl")
         with open(parameters_path, "rb") as f:
             parameters = pickle.load(f)
         loaded_autoencoder = VAE(*parameters)
 
+        # Compile the model (to be able to retrain it with additional data if needed)
+        loaded_autoencoder.compile_model(learning_rate=learning_rate)
+
+        # Load the Weights
         weights_path = os.path.join(save_folder, "weights.h5")
         loaded_autoencoder.model.load_weights(weights_path)
-        """
-        #Load Model:
-        model_path = os.path.join(save_folder, "model.h5")
-        loaded_autoencoder.model = load_model(model_path, custom_objects={'LambdaLayer': LambdaLayer,
-                                                                    '_calculate_combined_loss': cls._calculate_combined_loss,
-                                                                    'calculate_reconstruction_loss': cls.calculate_reconstruction_loss}
-                                                                    )
 
-        print(f"This model was trained with {loaded_autoencoder.num_of_train_data} wavesets "
-              f"and has a {loaded_autoencoder.latent_space_dim}D latent space")
-        """
+        # Load the Optimizer State
+        loaded_autoencoder.model._make_train_function()
+
+        optimizer_path = os.path.join(save_folder, "optimizer.pkl")
+        with open(optimizer_path, 'rb') as f:
+            weight_values = pickle.load(f)
+        loaded_autoencoder.model.optimizer.set_weights(weight_values)
+
         return loaded_autoencoder
 
 
@@ -294,9 +308,10 @@ if __name__ == "__main__":
     Loading the Data
     -----------------
     """
-    subfolder = "0.25_16"
-    x_train = np.load("data_and_models\\" + subfolder + "\\spectos.npy")
-    #x_train = x_train[:1000]
+    subfolder = "4.0_256"
+    data = np.load("data_and_models/" + subfolder + "/spectos500.npy")
+    x_train, x_test, _, _ = train_test_split(data, data, test_size=0.2)
+    del data
 
     """
     ------------------------
@@ -323,20 +338,35 @@ if __name__ == "__main__":
     """
 
     LEARNING_RATE = 0.0005
-    BATCH_SIZE = 32
+    BATCH_SIZE = 10
     EPOCHS = 20
 
     autoencoder.compile_model(LEARNING_RATE)
-    autoencoder.train(x_train, BATCH_SIZE, EPOCHS)
+    steps= 18
 
-    """
-    ----------------
-    Save VAE
-    ----------------
-    """
+    for i in range(steps):
+        num = int(x_train.shape[0] / steps) * (i+1)
+        test_num = int(x_test.shape[0] / steps) * (i + 1)
 
-    save_path = "data_and_models\\" + subfolder + "\\VAE_Vocals_" + str(autoencoder.latent_space_dim) + "D_" + str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
-    autoencoder.save(save_path)
-    #test_load = VAE.load(save_path)
-    #test_load.summary()
+        print("Train from index " + str(int(num-(num/(i+1)))) + " to index " + str(num))
+        print("Use test indices " + str(int(test_num-(test_num/(i+1)))) + " to " + str(test_num) +
+              " as validation set")
+
+        train_subset = x_train[int(num-(num/(i+1))):num]
+        test_subset = x_test[int(test_num-(test_num/(i+1))):test_num]
+
+        autoencoder.train(train_subset, test_subset, BATCH_SIZE, EPOCHS)
+
+        save_path = "data_and_models/" + subfolder + "/VAE_Vocals_" + str(autoencoder.latent_space_dim) + "D_" + str(
+        autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
+
+        """
+        ----------------
+        Save VAE
+        ----------------
+        """
+
+        autoencoder.save(save_path)
+        print("saved at: " + save_path)
+
 
