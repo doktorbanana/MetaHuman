@@ -9,6 +9,7 @@ from IPython.display import display, Audio
 import math
 import os
 
+
 class Snippets:
     def __init__(self, file_path, min_size_fraction, win_length, n_fft, hop_length):
         self.data, self.sr = librosa.load(file_path, sr=None, mono=True)
@@ -82,7 +83,7 @@ class Snippets:
         norm_array = norm_array * (new_max - new_min) + new_min
         return norm_array
 
-    def plot_snippets(self,  plot_range=[0, 44100*4]):
+    def plot_snippets(self, plot_range=[0, 44100 * 4]):
         data_range = self.data[plot_range[0]:plot_range[1]]
         plt.figure(figsize=(15, 5))
         plt.plot(data_range)
@@ -92,50 +93,54 @@ class Snippets:
             data_range.max(), data_range.min(), color='g')
         plt.xlabel("samples")
         plt.ylabel("amplitude")
-        plt.title("Wavesets")
+        plt.title("Snippets")
         plt.show();
-
-
 
     """
     --------------
     RECONSTRUCTION
     --------------
     """
+
     @classmethod
-    def specto_to_pca(cls, model, data,hop_length, n_fft, win_length):
+    def specto_to_pcm(cls, model, data, hop_length, n_fft, win_length):
         latent_representation = model.encoder.predict(data)
-        reconstructed_pca, reconstructed_specto = cls.latent_representation_to_pca(latent_representation=latent_representation,
-                                                                                   model=model,
-                                                                                   hop_length=hop_length,
-                                                                                   n_fft=n_fft,
-                                                                                   win_length=win_length)
-        print(reconstructed_pca.shape)
-        return reconstructed_pca, reconstructed_specto
+        reconstructed_pcm, reconstructed_specto = cls.latent_representation_to_pcm(
+            latent_representations=latent_representation,
+            model=model,
+            hop_length=hop_length,
+            n_fft=n_fft,
+            win_length=win_length)
+        print(reconstructed_pcm.shape)
+        return reconstructed_pcm, reconstructed_specto
 
     @classmethod
-    def latent_representation_to_pca(cls, latent_representations, model, hop_length, n_fft, win_length):
+    def latent_representation_to_pcm(cls, latent_representations, model, hop_length, n_fft, win_length):
         reconstructed_specto = model.decoder.predict(latent_representations)
-        reconstructed_pca,_ = cls.reconstructed_spectos_to_pca(reconstructed_specto,hop_length, n_fft, win_length )
-        return reconstructed_pca, reconstructed_specto
+        reconstructed_pcm, _ = cls.reconstructed_spectos_to_pcm(reconstructed_specto, hop_length, n_fft, win_length)
+        return reconstructed_pcm, reconstructed_specto
 
     @classmethod
-    def reconstructed_spectos_to_pca(cls, spectos, hop_length, n_fft, win_length):
+    def reconstructed_spectos_to_pcm(cls, spectos, hop_length, n_fft, win_length):
         reconstructed_data = np.array(0)
         clipped_spectos = []
         for i, specto in enumerate(spectos):
             reshaped_specto = specto[:, :, 0]
             denorm_specto = cls._denormalise(reshaped_specto, 0, 1, -100, 100)
             clipped_specto = np.clip(denorm_specto, -100, 20)
-            #print(clipped_specto.max())
+            # print(clipped_specto.max())
             lin_specto = librosa.db_to_power(clipped_specto)
-            pca = librosa.feature.inverse.mel_to_audio(lin_specto, sr=44100,
+            pcm = librosa.feature.inverse.mel_to_audio(lin_specto, sr=44100,
                                                        hop_length=hop_length,
                                                        n_fft=n_fft,
                                                        win_length=win_length,
-                                                       fmax = 16000)
-            signal = cls._cut_zero_crossings(pca)
-            reconstructed_data = np.append(reconstructed_data,signal)
+                                                       fmax=16000)
+            signal = cls._cut_zero_crossings(pcm)
+
+            if i > 0:
+                reconstructed_data = cls._crossfade(reconstructed_data, signal, 820)
+            else:
+                reconstructed_data = np.append(reconstructed_data, signal)
             clipped_spectos.append(clipped_specto)
             print(f"Reconstructed {i + 1} of {len(spectos)} spectos", end="\r")
         reconstructed_data = reconstructed_data.flatten()
@@ -148,16 +153,29 @@ class Snippets:
         return denorm_array
 
     @staticmethod
-    def _cut_zero_crossings(pca):
+    def _cut_zero_crossings(pcm):
         zero_crossings = np.argwhere(
-            (np.sign(pca[:-1]) == -1) & (np.sign(pca[1:]) == 1)
+            (np.sign(pcm[:-1]) == -1) & (np.sign(pcm[1:]) == 1)
         )
-        if(zero_crossings.shape[0] > 0):
+        if (zero_crossings.shape[0] > 0):
             last_zero = zero_crossings[-1][0]
             first_zero = zero_crossings[0][0]
-            cutted_pca = pca[first_zero:last_zero]
-            return cutted_pca
-        else: return pca
+            cutted_pcm = pcm[first_zero:last_zero]
+            return cutted_pcm
+        else:
+            return pcm
+
+    @staticmethod
+    def _crossfade(array_a, array_b, fadeTime):
+        fade_in = np.sqrt((1 + np.linspace(-1, 1, fadeTime)) * 0.5)
+        fade_out = np.sqrt((1 - np.linspace(-1, 1, fadeTime)) * 0.5)
+        fade_in = np.pad(fade_in, (0, array_b.shape[0] - fadeTime), 'constant', constant_values=(1, 1))
+        fade_out = np.pad(fade_out, (array_a.shape[0] - fadeTime, 0), 'constant', constant_values=(1, 1))
+        array_a = array_a * fade_out
+        array_b = array_b * fade_in
+        array_a[-fadeTime:] += array_b[:fadeTime]
+        result = np.append(array_a, array_b[fadeTime:])
+        return result
 
     @classmethod
     def plot_specto(cls, specto, name, hop_length):
