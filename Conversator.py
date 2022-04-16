@@ -1,3 +1,5 @@
+import os.path
+
 from Variational_Autoencoder_alla_Valerio import VAE
 from Snippets import Snippets
 from IPython.display import Audio
@@ -33,7 +35,6 @@ class Conversator:
 
         self.partner = partner
         self.last_song_heard = None
-        self.song_to_sing = None
         self.remembered_spectos = None
         self.currently_singing = False
 
@@ -45,18 +46,37 @@ class Conversator:
     send it to its partner.
     """
 
-    def sing(self):
+    def sing(self, song):
         self.currently_singing = True
-        print(self.name + ": LaLeLu... I'm singing a machine Song. DubiSchubiDu...")
-        self.partner.last_song_heard = self.song_to_sing
-        Audio(self.song_to_sing, autoplay=True, rate=self.sr)
-        duration = self.song_to_sing.shape[0] / self.sr
+        self.partner.last_song_heard = song
+        Audio(song, autoplay=True, rate=self.sr)
+        duration = song.shape[0] / self.sr
         start_time = time.time()
         if time.time() > start_time + duration + 1:
-            print(self.name + ": I'm done singing my machine song. Did you like it?")
+            print(self.name + ": I'm done singing my song. Did you like it?")
             self.currently_singing = False
 
-    def come_up_with_something(self):
+    def sing_last_heard_song(self):
+        print(self.name + ": Let me try to sing, what i just heard. DubiSchubiDu...")
+        self.sing(self.last_song_heard)
+
+    def sing_human_song(self, subfolder):
+        print(self.name + ": LaLeLu... I'm singing one of the human songs...")
+
+        song_orders_path = os.path.join("data_and_models", subfolder + "/song_orders.npy")
+        song_orders = np.load(song_orders_path)
+        human_song = song_orders[np.random.randint(0, song_orders.shape[0])]
+        human_pcm = Snippets.latent_representation_to_pcm(latent_representations=human_song,
+                                                          model=self.snippet_autoencoder,
+                                                          hop_length=self.hop_length,
+                                                          n_fft=self.n_fft,
+                                                          win_length=self.win_length)
+
+        self.sing(human_pcm)
+
+    def sing_machine_song(self):
+        # HAS TO BE IMPLEMENTED
+        print("BriiBrazzzFuaazz... I'm singing a machine song.")
         pass
 
     """
