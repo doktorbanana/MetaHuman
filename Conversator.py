@@ -1,5 +1,4 @@
 import os.path
-
 from Variational_Autoencoder_alla_Valerio import VAE
 from Snippets import Snippets
 from IPython.display import Audio
