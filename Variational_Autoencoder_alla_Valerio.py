@@ -214,7 +214,8 @@ class VAE:
         self._save_parameters(save_folder)
         self._save_weights(save_folder)
         self._save_optimizer_state(save_folder)
-        self.model.save(save_folder + "\\" + "model.h5")
+        model_save_path = os.path.join(save_folder, "model.h5")
+        self.model.save(model_save_path)
 
     def _create_folder(self, save_folder):
         if not os.path.exists(save_folder):
@@ -339,14 +340,14 @@ if __name__ == "__main__":
 
     LEARNING_RATE = 0.0005
     BATCH_SIZE = 10
-    EPOCHS = 5
+    EPOCHS = 20
 
     autoencoder.compile_model(LEARNING_RATE)
-    steps = 1800
+    steps = 18
     history = []
     val_history = []
 
-    for i in range(2):
+    for i in range(steps):
         num = int(x_train.shape[0] / steps) * (i + 1)
         test_num = int(x_test.shape[0] / steps) * (i + 1)
 
