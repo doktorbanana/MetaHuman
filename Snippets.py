@@ -30,7 +30,7 @@ class Snippets:
 
     def get_snippet_spectos(self):
         self.data = self._delete_silence(self.data, 2 * self.sr)
-        if len(self.data) > 0:
+        if len(self.data) > self.min_size:
             self._get_splitPoints()
             snippets = self._generate_snippets()
             spectos = self._get_mel_spectos(snippets)
