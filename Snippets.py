@@ -10,6 +10,7 @@ import math
 import os
 import time
 
+
 class Snippets:
     def __init__(self, file_path, min_size_fraction, win_length, n_fft, hop_length):
         if file_path is not None:
@@ -108,8 +109,36 @@ class Snippets:
     """
 
     @classmethod
-    def specto_to_pcm(cls, model, data, hop_length, n_fft, win_length):
+    def pcm_to_pcm(cls, model, data, min_size_fraction, hop_length, n_fft, win_length, var_amount=0):
+        spectos = cls.pcm_to_specto(pcm_data=data,
+                                    min_size_fraction=min_size_fraction,
+                                    hop_length=hop_length,
+                                    win_length=win_length,
+                                    n_fft=n_fft)
+
+        new_pcm, _ = cls.specto_to_pcm(model=model,
+                                       data=spectos,
+                                       hop_length=hop_length,
+                                       n_fft=n_fft,
+                                       win_length=win_length,
+                                       variation=var_amount)
+        return new_pcm, spectos
+
+    @classmethod
+    def pcm_to_specto(cls, pcm_data, min_size_fraction, win_length, n_fft, hop_length):
+        snippet_generator = Snippets(file_path=None,
+                                     min_size_fraction=min_size_fraction,
+                                     win_length=win_length,
+                                     n_fft=n_fft,
+                                     hop_length=hop_length)
+        snippet_generator.data = pcm_data
+        spectos = snippet_generator.get_snippet_spectos(delete_silence=False)
+        return spectos
+
+    @classmethod
+    def specto_to_pcm(cls, model, data, hop_length, n_fft, win_length, variation=0):
         latent_representation = model.encoder.predict(data)
+        latent_representation += np.random.normal(0, variation, latent_representation.shape)
         reconstructed_pcm, reconstructed_specto = cls.latent_representation_to_pcm(
             latent_representations=latent_representation,
             model=model,
@@ -120,9 +149,9 @@ class Snippets:
 
     @classmethod
     def latent_representation_to_pcm(cls, latent_representations, model, hop_length, n_fft, win_length):
-        #print("Getting latent representation of the spectos...")
+        # print("Getting latent representation of the spectos...")
         reconstructed_specto = model.decoder.predict(latent_representations)
-        #print("Getting PCM from spectos...")
+        # print("Getting PCM from spectos...")
         reconstructed_pcm, _ = cls.reconstructed_spectos_to_pcm(spectos=reconstructed_specto,
                                                                 hop_length=hop_length,
                                                                 n_fft=n_fft,
@@ -142,19 +171,19 @@ class Snippets:
             # print("min: " + str(lin_specto.min()))
             # print("mean: " + str(np.mean(lin_specto)))
 
-            #start_time = time.time()
-            #print("Start Transform")
+            # start_time = time.time()
+            # print("Start Transform")
             stft = librosa.feature.inverse.mel_to_stft(M=lin_specto,
                                                        sr=44100,
                                                        n_fft=n_fft,
                                                        fmax=16000)
-            #stft_time = time.time()
-            #print("Transformed to stft in " + str(time.time() - start_time))
+            # stft_time = time.time()
+            # print("Transformed to stft in " + str(time.time() - start_time))
             pcm = librosa.griffinlim(S=stft,
                                      hop_length=hop_length,
                                      win_length=win_length,
                                      n_iter=32)
-            #print("Transformed to pcm in " + str(time.time() - stft_time))
+            # print("Transformed to pcm in " + str(time.time() - stft_time))
             signal = cls._cut_zero_crossings(pcm)
 
             if i > 0:

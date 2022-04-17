@@ -1,11 +1,3 @@
-import os.path
-from Variational_Autoencoder_alla_Valerio import VAE
-from Snippets import Snippets
-from IPython.display import Audio
-import numpy as np
-import time
-
-
 class Conversator:
     def __init__(self, snippet_model_path,
                  order_model_path,
@@ -34,6 +26,8 @@ class Conversator:
         self.partner = partner
         self.last_song_heard = None
         self.last_song_imitation = None
+        self.last_song_variation = None
+
         self.remembered_spectos = []
         self.currently_singing = False
         self.start_time = 0
@@ -76,6 +70,13 @@ class Conversator:
         print("BriiBrazzzFuaazz... I'm singing a machine song.")
         pass
 
+    def sing_variation_of_last_heard(self, var_amount=1):
+        print(self.name + ": ZiiiSch... I'm singing a variation of the last song.")
+        if self.last_song_variation is not None:
+            self.sing(self.last_song_variation)
+        else:
+            print(self.model_name + ": Upps, i didn't think about a variation.")
+
     def quiet_please(self):
         while time.time() < self.start_time + self.current_song_duration + 1:
             pass
@@ -91,30 +92,52 @@ class Conversator:
 
     def listen(self):
         print(self.name + ": Ohhuu... I'm listening to nice machine music...")
-        self.last_song_imitation = self.pcm_to_pcm(self.last_song_heard)
+        self.last_song_imitation, spectos = Snippets.pcm_to_pcm(model=self.snippet_autoencoder,
+                                                                data=self.last_song_heard,
+                                                                min_size_fraction=self.min_size_fraction,
+                                                                hop_length=self.hop_length,
+                                                                n_fft=self.n_fft,
+                                                                win_length=self.win_length,
+                                                                var_amount=0)
 
-    def pcm_to_pcm(self, pcm_data):
-        spectos = self.pcm_to_spectos(pcm_data)
-        new_pcm, _ = Snippets.specto_to_pcm(model=self.snippet_autoencoder,
-                                            data=spectos,
-                                            hop_length=self.hop_length,
-                                            n_fft=self.n_fft,
-                                            win_length=self.win_length)
-        return new_pcm
-
-    def pcm_to_spectos(self, pcm_data):
-        snippet_generator = Snippets(file_path=None,
-                                     min_size_fraction=self.min_size_fraction,
-                                     win_length=self.win_length,
-                                     n_fft=self.n_fft,
-                                     hop_length=self.hop_length)
-        snippet_generator.data = pcm_data
-        spectos = snippet_generator.get_snippet_spectos(delete_silence=False)
         if spectos is not None:
             self.remembered_spectos.extend(spectos)
         else:
             print("No spectos... No vocals?")
         return spectos
+
+    def think_about_variation(self, var_amount=1):
+        print(self.name + ": Mhhh... Interesting Song, let me think about a variation of that...")
+        self.last_song_variation, spectos = Snippets.pcm_to_pcm(model=self.snippet_autoencoder,
+                                                                data=self.last_song_heard,
+                                                                min_size_fraction=self.min_size_fraction,
+                                                                hop_length=self.hop_length,
+                                                                n_fft=self.n_fft,
+                                                                win_length=self.win_length,
+                                                                var_amount=var_amount)
+        if spectos is not None:
+            self.remembered_spectos.extend(spectos)
+        else:
+            print("No spectos... No vocals?")
+        return spectos
+
+    #     def pcm_to_pcm(self, pcm_data, variation=0):
+    #         spectos = self.pcm_to_spectos(pcm_data, variation=variation)
+    #         new_pcm, _ = Snippets.specto_to_pcm(model=self.snippet_autoencoder,
+    #                                          data=spectos,
+    #                                          hop_length=self.hop_length,
+    #                                          n_fft=self.n_fft,
+    #                                          win_length=self.win_length)
+    #         return new_pcm
+
+    #     def pcm_to_spectos(self, pcm_data):
+    #         snippet_generator = Snippets(file_path=None,
+    #                                           min_size_fraction=self.min_size_fraction,
+    #                                           win_length=self.win_length,
+    #                                           n_fft=self.n_fft,
+    #                                           hop_length=self.hop_length)
+    #         snippet_generator.data = pcm_data
+    #         spectos = snippet_generator.get_snippet_spectos(delete_silence=False)
 
     """
     ==============
