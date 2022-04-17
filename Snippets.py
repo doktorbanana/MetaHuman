@@ -116,7 +116,9 @@ class Snippets:
 
     @classmethod
     def latent_representation_to_pcm(cls, latent_representations, model, hop_length, n_fft, win_length):
+        print("Getting latent representation of the spectos...")
         reconstructed_specto = model.decoder.predict(latent_representations)
+        print("Getting PCM from spectos...")
         reconstructed_pcm, _ = cls.reconstructed_spectos_to_pcm(reconstructed_specto, hop_length, n_fft, win_length)
         return reconstructed_pcm, reconstructed_specto
 
@@ -130,11 +132,18 @@ class Snippets:
             clipped_specto = np.clip(denorm_specto, -100, 20)
             # print(clipped_specto.max())
             lin_specto = librosa.db_to_power(clipped_specto)
+            cls.plot_specto(specto=lin_specto,name="Reconstructed Specto", hop_length=hop_length)
+            print("max: " + str(lin_specto.max()))
+            print("min: " + str(lin_specto.min()))
+
+            print("\nStart Transform...")
             pcm = librosa.feature.inverse.mel_to_audio(lin_specto, sr=44100,
                                                        hop_length=hop_length,
                                                        n_fft=n_fft,
                                                        win_length=win_length,
-                                                       fmax=16000)
+                                                       fmax=16000,
+                                                       n_iter=8)
+            print("Transformed...")
             signal = cls._cut_zero_crossings(pcm)
 
             if i > 0:

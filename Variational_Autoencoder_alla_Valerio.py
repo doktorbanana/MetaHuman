@@ -265,10 +265,15 @@ class VAE:
         # Load the Optimizer State
         loaded_autoencoder.model._make_train_function()
 
+
         optimizer_path = os.path.join(save_folder, "optimizer.pkl")
-        with open(optimizer_path, 'rb') as f:
-            weight_values = pickle.load(f)
-        loaded_autoencoder.model.optimizer.set_weights(weight_values)
+
+        if os.path.isfile(optimizer_path):
+            with open(optimizer_path, 'rb') as f:
+                weight_values = pickle.load(f)
+            loaded_autoencoder.model.optimizer.set_weights(weight_values)
+        else:
+            print("Could not find optimizer state!")
 
         return loaded_autoencoder
 
@@ -306,12 +311,14 @@ if __name__ == "__main__":
     Loading the Data
     -----------------
     """
-    subfolder = "4.0_256"
+    subfolder = "2.0_128"
     load_path = os.path.join("data_and_models", subfolder)
     load_path = os.path.join(load_path, "spectos500.npy")
+    print("Loading Data...")
     data = np.load(load_path)
     x_train, x_test, _, _ = train_test_split(data, data, test_size=0.2)
     del data
+    print("Shape of the training data: " + str(x_train.shape))
 
     """
     ------------------------
@@ -319,17 +326,23 @@ if __name__ == "__main__":
     ------------------------
     """
 
-    autoencoder = VAE(
-        input_shape=(x_train[0].shape[0], x_train[0].shape[1], x_train[0].shape[2]),
-        conv_filters=(512, 256, 128, 64, 32),
-        conv_kernels=(3, 3, 3, 3, 3),
-        conv_strides=(2, 2, 2, 2, (2, 1)),
-        latent_space_dim=128
-    )
+    LEARNING_RATE = 0.0005
+    BATCH_SIZE = 128
+    EPOCHS = 20
+    # autoencoder = VAE(
+    #     input_shape=(x_train[0].shape[0], x_train[0].shape[1], x_train[0].shape[2]),
+    #     conv_filters=(512, 256, 128, 64, 32),
+    #     conv_kernels=(3, 3, 3, 3, 3),
+    #     conv_strides=(2, 2, 2, 2, (2, 1)),
+    #     latent_space_dim=128
+    # )
 
+    path = os.path.join("data_and_models", subfolder, "Valerio_128D_30000samples_20Epochs")
+    print("Loading model...")
+    autoencoder = VAE.load(save_folder=path, learning_rate=LEARNING_RATE)
     autoencoder.summary()
 
-    print("Shape of the training data: " + str(x_train.shape))
+
 
     """
     ---------------------
@@ -337,16 +350,13 @@ if __name__ == "__main__":
     ---------------------
     """
 
-    LEARNING_RATE = 0.0005
-    BATCH_SIZE = 10
-    EPOCHS = 5
 
-    autoencoder.compile_model(LEARNING_RATE)
-    steps = 1800
+    #autoencoder.compile_model(LEARNING_RATE)
+    steps = 15
     history = []
     val_history = []
 
-    for i in range(2):
+    for i in range(steps):
         num = int(x_train.shape[0] / steps) * (i + 1)
         test_num = int(x_test.shape[0] / steps) * (i + 1)
 
@@ -368,12 +378,11 @@ if __name__ == "__main__":
 
         save_path = os.path.join("data_and_models", subfolder)
         name = "VAE_Vocals_" + str(autoencoder.latent_space_dim) + "D_" + \
-               str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
+               str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS + 20) + "Epochs"
         model_path = os.path.join(save_path, name)
         autoencoder.save(model_path)
 
         print("saved at: " + save_path)
-
 
     """
     Save the History
@@ -383,8 +392,6 @@ if __name__ == "__main__":
 
     hist_save_path = os.path.join(save_path, "history.npy")
     val_hist_save_path = os.path.join(save_path, "val_history.npy")
-
-
 
     with open(hist_save_path, 'wb') as f:
         np.save(f, history)
@@ -407,4 +414,3 @@ if __name__ == "__main__":
     plt.xlabel("Validation Loss")
     plt.title("Validation Loss History")
     plt.show()
-
