@@ -8,11 +8,15 @@ import soundfile
 from IPython.display import display, Audio
 import math
 import os
-
+import time
 
 class Snippets:
     def __init__(self, file_path, min_size_fraction, win_length, n_fft, hop_length):
-        self.data, self.sr = librosa.load(file_path, sr=None, mono=True)
+        if file_path is not None:
+            self.data, self.sr = librosa.load(file_path, sr=None, mono=True)
+        else:
+            self.data = np.array(0)
+            self.sr = 44100
         self.min_size = self.sr / min_size_fraction
         self.split_points = []
         self.win_length = win_length
@@ -28,8 +32,9 @@ class Snippets:
                 new_pcm.append(frame)
         return np.array(new_pcm).flatten()
 
-    def get_snippet_spectos(self):
-        self.data = self._delete_silence(self.data, 2 * self.sr)
+    def get_snippet_spectos(self, delete_silence=True):
+        if delete_silence:
+            self.data = self._delete_silence(self.data, 2 * self.sr)
         if len(self.data) > self.min_size:
             self._get_splitPoints()
             snippets = self._generate_snippets()
@@ -94,7 +99,7 @@ class Snippets:
         plt.xlabel("samples")
         plt.ylabel("amplitude")
         plt.title("Snippets")
-        plt.show();
+        plt.show()
 
     """
     --------------
@@ -111,15 +116,17 @@ class Snippets:
             hop_length=hop_length,
             n_fft=n_fft,
             win_length=win_length)
-        print(reconstructed_pcm.shape)
         return reconstructed_pcm, reconstructed_specto
 
     @classmethod
     def latent_representation_to_pcm(cls, latent_representations, model, hop_length, n_fft, win_length):
-        print("Getting latent representation of the spectos...")
+        #print("Getting latent representation of the spectos...")
         reconstructed_specto = model.decoder.predict(latent_representations)
-        print("Getting PCM from spectos...")
-        reconstructed_pcm, _ = cls.reconstructed_spectos_to_pcm(reconstructed_specto, hop_length, n_fft, win_length)
+        #print("Getting PCM from spectos...")
+        reconstructed_pcm, _ = cls.reconstructed_spectos_to_pcm(spectos=reconstructed_specto,
+                                                                hop_length=hop_length,
+                                                                n_fft=n_fft,
+                                                                win_length=win_length)
         return reconstructed_pcm, reconstructed_specto
 
     @classmethod
@@ -130,20 +137,24 @@ class Snippets:
             reshaped_specto = specto[:, :, 0]
             denorm_specto = cls._denormalise(reshaped_specto, 0, 1, -100, 100)
             clipped_specto = np.clip(denorm_specto, -100, 20)
-            # print(clipped_specto.max())
             lin_specto = librosa.db_to_power(clipped_specto)
-            cls.plot_specto(specto=lin_specto,name="Reconstructed Specto", hop_length=hop_length)
-            print("max: " + str(lin_specto.max()))
-            print("min: " + str(lin_specto.min()))
+            # print("\n\nmax: " + str(lin_specto.max()))
+            # print("min: " + str(lin_specto.min()))
+            # print("mean: " + str(np.mean(lin_specto)))
 
-            print("\nStart Transform...")
-            pcm = librosa.feature.inverse.mel_to_audio(lin_specto, sr=44100,
-                                                       hop_length=hop_length,
+            #start_time = time.time()
+            #print("Start Transform")
+            stft = librosa.feature.inverse.mel_to_stft(M=lin_specto,
+                                                       sr=44100,
                                                        n_fft=n_fft,
-                                                       win_length=win_length,
-                                                       fmax=16000,
-                                                       n_iter=8)
-            print("Transformed...")
+                                                       fmax=16000)
+            #stft_time = time.time()
+            #print("Transformed to stft in " + str(time.time() - start_time))
+            pcm = librosa.griffinlim(S=stft,
+                                     hop_length=hop_length,
+                                     win_length=win_length,
+                                     n_iter=32)
+            #print("Transformed to pcm in " + str(time.time() - stft_time))
             signal = cls._cut_zero_crossings(pcm)
 
             if i > 0:
