@@ -18,7 +18,11 @@ DENSE AUTOENCODER CLASS
 class Dense_Autoencoder:
 
     def __init__(self, input_shape, num_of_neurons, latent_space_dim, num_of_train_data=None, mask_value=0, old_min=0,
-                 old_max=0):
+                 old_max=0,
+                 _latent_x_max=None,
+                 _latent_x_min=None,
+                 _latent_y_max=None,
+                 _latent_y_min=None):
         self.input_shape = input_shape  # dimension of input data: frequency-bins, time-windows, amplitude
         self.num_of_neurons = num_of_neurons
         self.latent_space_dim = latent_space_dim
@@ -33,6 +37,11 @@ class Dense_Autoencoder:
 
         self.old_min = old_min
         self.old_max = old_max
+
+        self.latent_x_max = _latent_x_max
+        self.latent_x_min = _latent_x_min
+        self.latent_y_max = _latent_y_max
+        self.latent_y_min = _latent_y_min
 
         self.num_of_dense_layers = len(self.num_of_neurons)
         self._build()
@@ -142,7 +151,13 @@ class Dense_Autoencoder:
             self.num_of_neurons,
             self.latent_space_dim,
             self.num_of_train_data,
-            self.mask_value]
+            self.mask_value,
+            self.old_min,
+            self.old_max,
+            self.latent_x_max,
+            self.latent_x_min,
+            self.latent_y_max,
+            self.latent_y_min]
 
         save_path = os.path.join(save_folder, "parameters.pkl")
 
@@ -185,3 +200,4 @@ class Dense_Autoencoder:
         loaded_autoencoder.model.optimizer.set_weights(weight_values)
 
         return loaded_autoencoder
+
