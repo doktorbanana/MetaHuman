@@ -307,9 +307,9 @@ if __name__ == "__main__":
     Loading the Data
     -----------------
     """
-    subfolder = "4.0_256"
+    subfolder = "0.25_16"
     load_path = os.path.join("data_and_models", subfolder)
-    load_path = os.path.join(load_path, "spectos500.npy")
+    load_path = os.path.join(load_path, "spectos1000.npy")
     data = np.load(load_path)
     x_train, x_test, _, _ = train_test_split(data, data, test_size=0.2)
     del data
@@ -343,7 +343,7 @@ if __name__ == "__main__":
     EPOCHS = 20
 
     autoencoder.compile_model(LEARNING_RATE)
-    steps = 18
+    steps = 20
     history = []
     val_history = []
 
@@ -351,6 +351,7 @@ if __name__ == "__main__":
         num = int(x_train.shape[0] / steps) * (i + 1)
         test_num = int(x_test.shape[0] / steps) * (i + 1)
 
+        print("Start with subset " + str(i+1) + " of " + str(steps))
         print("Train from index " + str(int(num - (num / (i + 1)))) + " to index " + str(num))
         print("Use test indices " + str(int(test_num - (test_num / (i + 1)))) + " to " + str(test_num) +
               " as validation set")
