@@ -51,7 +51,7 @@ If you are interested in the technical implementation, please follow these steps
   You should now see seven different Notebooks in your browser (Notebooks 0-6). You can go through the code and our documentation. Start with Notebook "0 Preface". If you are only interested in the result you can skip notebooks 1-5 and jump to Notebook 6. 
 
 5. To run the code in Notebook 6, you need our trained models. You can get them here: https://drive.google.com/drive/folders/1IU1-62HpnQDz7yyQlBsNWtEvn7Ym5lgc?usp=sharing
-Please download both folders and paste them in the "data_and_models" folder in the project directory. 
+Please download all folders in the "data_and_models" folder and paste them in the "data_and_models" folder in the project directory (create it if it doesnt exist). 
 
 6. To run the code in Notebooks 1-5, you need training data. If you want to train your own model, you can use any collection of wav-files as training data. Note that the process works better for single instrument stems (as described in Notebook "1 Data Crawling". You will need to change the paths in the notebooks to match your location. We've commented on that in the Notebook.
 
