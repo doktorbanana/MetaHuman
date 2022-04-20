@@ -16,7 +16,8 @@ https://www.youtube.com/c/ValerioVelardoTheSoundofAI
 
 ## How to:
 
-If you only want to get a quick overview of the project and don't care about the technical implementation, please download the folder "example files" and listen to the output of our two networks. In the two audio files you can hear one of the networks trying to sing a song it was trained on - Hey Jude by The Beatles and Ave Maria. The Video files show the networks singing to each other.
+If you only want to get a quick overview of the project and don't care about the technical implementation, please download the folder "example files" and listen to the output of our two networks. In the two audio files you can hear one of the networks trying to sing a song it was trained on - Hey Jude by The Beatles and Ave Maria. The Video files show the networks singing to each other. You can find a videos of the two networks talking to each other here: https://drive.google.com/drive/folders/183Xb4NSxg_An0ehmYINbBRmoD4Kh4UoY?usp=sharing
+
 If you are interested in the idea of the project, you can read the "Konzept.pdf" (only in german).
 
 If you are interested in the technical implementation, please follow these steps:
