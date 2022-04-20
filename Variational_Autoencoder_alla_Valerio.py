@@ -301,19 +301,19 @@ class LambdaLayer(tf.keras.layers.Layer):
 
 
 if __name__ == "__main__":
-
+    print("start")
     """
     -----------------
     Loading the Data
     -----------------
     """
-    subfolder = "0.25_16"
-    load_path = os.path.join("data_and_models", subfolder)
-    load_path = os.path.join(load_path, "spectos1000.npy")
-    data = np.load(load_path)
-    x_train, x_test, _, _ = train_test_split(data, data, test_size=0.2)
-    del data
-
+    subfolder = "2.0_128"
+    load_path = os.path.join("/Users/dearvr-Tester/Documents/MetaHuman/data_and_models/2.0_128", "spectos_drums.npy")
+    #load_path = os.path.join(load_path, "spectos1000.npy")
+    x_train = np.load(load_path)
+    x_train, x_test, _, _ = train_test_split(x_train, x_train, test_size=0.2)
+    x_train = x_train[:15000]
+    print("loaded data")
     """
     ------------------------
     Buildung the VAE
@@ -339,11 +339,11 @@ if __name__ == "__main__":
     """
 
     LEARNING_RATE = 0.0005
-    BATCH_SIZE = 10
+    BATCH_SIZE = 128
     EPOCHS = 20
 
     autoencoder.compile_model(LEARNING_RATE)
-    steps = 20
+    steps = 10
     history = []
     val_history = []
 
@@ -369,7 +369,7 @@ if __name__ == "__main__":
         """
 
         save_path = os.path.join("data_and_models", subfolder)
-        name = "VAE_Vocals_" + str(autoencoder.latent_space_dim) + "D_" + \
+        name = "VAE_Drums_" + str(autoencoder.latent_space_dim) + "D_" + \
                str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
         model_path = os.path.join(save_path, name)
         autoencoder.save(model_path)
@@ -383,8 +383,8 @@ if __name__ == "__main__":
     history = np.asarray(history)
     val_history = np.asarray(val_history)
 
-    hist_save_path = os.path.join(save_path, "history.npy")
-    val_hist_save_path = os.path.join(save_path, "val_history.npy")
+    hist_save_path = os.path.join(save_path, "history_drums.npy")
+    val_hist_save_path = os.path.join(save_path, "val_history_drums.npy")
 
 
 
