@@ -52,7 +52,7 @@ If you are interested in the technical implementation, please follow these steps
   If you are only interested in the result you can skip notebooks 1-5 and jump to Notebook 6. 
 
 5. To run the code in Notebook 6, you need our trained models. You can get them here: https://drive.google.com/drive/folders/1IU1-62HpnQDz7yyQlBsNWtEvn7Ym5lgc?usp=sharing
-Please download the folder and paste it in the project directory. 
+Please download both folders and paste them in the "models_and_data" folder in the project directory. 
 
 6. To run the code in Notebooks 1-5, you need training data. If you want to train your own model, you can use any collection of wav-files as training data. You will need to change the paths in the notebooks to match your location. We've commented on that in the Notebooks. 
 
