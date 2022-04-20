@@ -1,4 +1,5 @@
 # MetaHuman
+Project by Fynn Freist and Peter Martin
 Posthumanity makes music.
 
 For MetaHuman two neural networks have been trained on YouTube songs and learned how to sing. A closed loop was created, where the two networks sing to each other and learn from what they hear. If this process is repeated often enough, at some point there will be more machine-songs than human-songs in the training-set of the networks - at this point they've learned more from each other, then from humans. We hope, that this leads to "meta-" or "post-human" music. 
@@ -46,7 +47,7 @@ If you are interested in the technical implementation, please follow these steps
 
 (If you are not familiar with all of this, you can find a more detailed and very good explanation here: https://capital-g.github.io/musikinformatik-sose2021/docs/course-info/setup.html. Just replace https://github.com/capital-G/musikinformatik-sose2021.git in the first step with https://github.com/doktorbanana/MetaHuman.git You can skip the SuperCollider installattion)
 
-You should now see seven different Notebooks in your browser (Notebooks 0-6). And can go through the code and our documentation. Start with Notebook "0 Preface". 
+You should now see seven different Notebooks in your browser (Notebooks 0-6). You can go through the code and our documentation. Start with Notebook "0 Preface". 
 If you are only interested in the result you can skip notebooks 1-5 and jump to Notebook 6. 
 
 5. To run the code in Notebook 6, you need our trained models. You can get them here: https://drive.google.com/drive/folders/1IU1-62HpnQDz7yyQlBsNWtEvn7Ym5lgc?usp=sharing
