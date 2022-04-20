@@ -16,8 +16,8 @@ https://www.youtube.com/c/ValerioVelardoTheSoundofAI
 
 ## How to:
 
-If you only want to get a quick overview of the project and don't care about the technical implementation, please download the folder "example files" and listen to the output of our two networks. The .txt gives an overview, what exactly you hear in each file. If you are intested in the idea of the project, you can read the "Konzept.pdf" (only in german).
-
+If you only want to get a quick overview of the project and don't care about the technical implementation, please download the folder "example files" and listen to the output of our two networks. In the two audio files you can hear one of the networks trying to sing a song it was trained on - Hey Jude by The Beatles and Ave Maria. The Video files show the networks singing to each other.
+If you are interested in the idea of the project, you can read the "Konzept.pdf" (only in german).
 
 If you are interested in the technical implementation, please follow these steps:
 
@@ -48,13 +48,12 @@ If you are interested in the technical implementation, please follow these steps
 
   (If you are not familiar with all of this, you can find a more detailed and very good explanation here: https://capital-g.github.io/musikinformatik-sose2021/docs/course-info/setup.html. Just replace https://github.com/capital-G/musikinformatik-sose2021.git in the first step with https://github.com/doktorbanana/MetaHuman.git You can skip the SuperCollider installation)
 
-  You should now see seven different Notebooks in your browser (Notebooks 0-6). You can go through the code and our documentation. Start with Notebook "0 Preface". 
-  If you are only interested in the result you can skip notebooks 1-5 and jump to Notebook 6. 
+  You should now see seven different Notebooks in your browser (Notebooks 0-6). You can go through the code and our documentation. Start with Notebook "0 Preface". If you are only interested in the result you can skip notebooks 1-5 and jump to Notebook 6. 
 
 5. To run the code in Notebook 6, you need our trained models. You can get them here: https://drive.google.com/drive/folders/1IU1-62HpnQDz7yyQlBsNWtEvn7Ym5lgc?usp=sharing
-Please download both folders and paste them in the "models_and_data" folder in the project directory. 
+Please download both folders and paste them in the "data_and_models" folder in the project directory. 
 
-6. To run the code in Notebooks 1-5, you need training data. If you want to train your own model, you can use any collection of wav-files as training data. You will need to change the paths in the notebooks to match your location. We've commented on that in the Notebooks. 
+6. To run the code in Notebooks 1-5, you need training data. If you want to train your own model, you can use any collection of wav-files as training data. Note that the process works better for single instrument stems (as described in Notebook "1 Data Crawling". You will need to change the paths in the notebooks to match your location. We've commented on that in the Notebook.
 
 
 
