@@ -43,10 +43,10 @@ If you are interested in the technical implementation, please follow these steps
   ```bash
   jupyter lab
   ```
-(If you are not familiar with all of this, you can find a more detailed and very good explanation here: https://capital-g.github.io/musikinformatik-sose2021/docs/course-info/setup.html. Just replace https://github.com/capital-G/musikinformatik-sose2021.git in the first step with https://github.com/doktorbanana/MetaHuman.git You can skip the SuperCollider installattion)
+  (If you are not familiar with all of this, you can find a more detailed and very good explanation here: https://capital-g.github.io/musikinformatik-sose2021/docs/course-info/setup.html. Just replace https://github.com/capital-G/musikinformatik-sose2021.git in the first step with https://github.com/doktorbanana/MetaHuman.git You can skip the SuperCollider installattion)
 
-You should now see seven different Notebooks in your browser (Notebooks 0-6). And can go through the code and our documentation. Start with Notebook "0 Preface". 
-If you are only interested in the result you can skip notebooks 1-5 and jump to Notebook 6. 
+  You should now see seven different Notebooks in your browser (Notebooks 0-6). And can go through the code and our documentation. Start with Notebook "0 Preface". 
+  If you are only interested in the result you can skip notebooks 1-5 and jump to Notebook 6. 
 
 5. To run the code in Notebook 6, you need our trained models. You can get them here: https://drive.google.com/drive/folders/1IU1-62HpnQDz7yyQlBsNWtEvn7Ym5lgc?usp=sharing
 Please download the folder and paste it in the project directory. 
