@@ -1,6 +1,6 @@
 # MetaHuman
 Posthumanity makes music.
-Project by Fynn Freist and Peter Martin.
+\n Project by Fynn Freist and Peter Martin.
 
 For MetaHuman two neural networks have been trained on YouTube songs and learned how to sing. A closed loop was created, where the two networks sing to each other and learn from what they hear. If this process is repeated often enough, at some point there will be more machine-songs than human-songs in the training-set of the networks - at this point they've learned more from each other, then from humans. We hope, that this leads to "meta-" or "post-human" music. 
 
