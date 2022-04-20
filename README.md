@@ -46,7 +46,7 @@ If you are interested in the technical implementation, please follow these steps
   jupyter lab
   ```
 
-  (If you are not familiar with all of this, you can find a more detailed and very good explanation here: https://capital-g.github.io/musikinformatik-sose2021/docs/course-info/setup.html. Just replace https://github.com/capital-G/musikinformatik-sose2021.git in the first step with https://github.com/doktorbanana/MetaHuman.git You can skip the SuperCollider installattion)
+  (If you are not familiar with all of this, you can find a more detailed and very good explanation here: https://capital-g.github.io/musikinformatik-sose2021/docs/course-info/setup.html. Just replace https://github.com/capital-G/musikinformatik-sose2021.git in the first step with https://github.com/doktorbanana/MetaHuman.git You can skip the SuperCollider installation)
 
   You should now see seven different Notebooks in your browser (Notebooks 0-6). You can go through the code and our documentation. Start with Notebook "0 Preface". 
   If you are only interested in the result you can skip notebooks 1-5 and jump to Notebook 6. 
