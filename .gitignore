@@ -10,7 +10,6 @@ _templates/
 *.parquet
 Untitled*.ipynb
 *.protobuf
-*.wav
 *.npy
 *.pkl
 *.h5	
