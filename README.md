@@ -56,5 +56,7 @@ Please download all folders in the "data_and_models" folder and paste them in th
 
 6. To run the code in Notebooks 1-5, you need training data. If you want to train your own model, you can use any collection of wav-files as training data. Note that the process works better for single instrument stems (as described in Notebook "1 Data Crawling". You will need to change the paths in the notebooks to match your location. We've commented on that in the Notebook.
 
+If you only want to take a brief look at the Notebook, you can also find them here in HTML format: https://drive.google.com/drive/folders/1kDuurUXcbCYDq3x4Iemhh22ISNZBluq8?usp=sharing
+
 Please let me know, if you have any problems. This is our first project and we're happy about feedback. 
 
