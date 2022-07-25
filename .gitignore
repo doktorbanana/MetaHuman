@@ -1,3 +1,5 @@
+pretrained_models/*
+Stems/*
 venv/
 data_and_models/*
 demo_data/*

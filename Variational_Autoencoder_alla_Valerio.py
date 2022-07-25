@@ -308,11 +308,11 @@ if __name__ == "__main__":
     -----------------
     """
     subfolder = "2.0_128"
-    load_path = os.path.join("/Users/dearvr-Tester/Documents/MetaHuman/data_and_models/2.0_128", "spectos_drums.npy")
+    load_path = os.path.join("D:\Daten\Studium\Semester_8\MetaHuman\MetaHuman\data_and_models\\2.0_128", "spectos_beatles.npy")
     #load_path = os.path.join(load_path, "spectos1000.npy")
     x_train = np.load(load_path)
     x_train, x_test, _, _ = train_test_split(x_train, x_train, test_size=0.2)
-    x_train = x_train[:15000]
+    #x_train = x_train[:15000]
     print("loaded data")
     """
     ------------------------
@@ -369,7 +369,7 @@ if __name__ == "__main__":
         """
 
         save_path = os.path.join("data_and_models", subfolder)
-        name = "VAE_Drums_" + str(autoencoder.latent_space_dim) + "D_" + \
+        name = "VAE_beatles" + str(autoencoder.latent_space_dim) + "D_" + \
                str(autoencoder.num_of_train_data) + "samples_" + str(EPOCHS) + "Epochs"
         model_path = os.path.join(save_path, name)
         autoencoder.save(model_path)
@@ -383,8 +383,8 @@ if __name__ == "__main__":
     history = np.asarray(history)
     val_history = np.asarray(val_history)
 
-    hist_save_path = os.path.join(save_path, "history_drums.npy")
-    val_hist_save_path = os.path.join(save_path, "val_history_drums.npy")
+    hist_save_path = os.path.join(save_path, "history_beatles.npy")
+    val_hist_save_path = os.path.join(save_path, "val_history_beatles.npy")
 
 
 

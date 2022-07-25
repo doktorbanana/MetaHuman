@@ -18,7 +18,8 @@ class Conversator:
                  n_fft,
                  win_length,
                  sample_rate=44100,
-                 name="Valerio"):
+                 name="Valerio",
+                 communicator=None):
         self.name = name
 
         self.min_size_fraction = min_size_fraction
@@ -33,6 +34,11 @@ class Conversator:
             self.order_autoencoder = Dense_Autoencoder.load(order_model_path)
         else:
             self.order_autoencoder = None
+
+        if communicator is not None:
+            self.communicator = communicator
+        else:
+            self.communicator = Communicator()
 
         self.partner = partner
         self.last_song_heard = None
@@ -62,10 +68,12 @@ class Conversator:
 
     def sing_last_heard_song(self):
         print(self.name + ": Let me try to sing, what i just heard. DubiSchubiDu...")
+        self.communicator.send("/" + self.name, "Let me try to sing, what i just heard. DubiSchubiDu...")
         self.sing(self.last_song_imitation)
 
     def sing_human_song(self, song_orders_path, start_in_secs, end_in_secs):
         print(self.name + ": Let me remember that human song...")
+        self.communicator.send("/" + self.name, "Let me remember that human song...")
         song_orders = np.load(song_orders_path, allow_pickle=True)
         human_song = song_orders[np.random.randint(0, song_orders.shape[0])]
         human_song = human_song[int(start_in_secs * self.min_size_fraction):int(end_in_secs * self.min_size_fraction)]
@@ -75,10 +83,13 @@ class Conversator:
                                                              n_fft=self.n_fft,
                                                              win_length=self.win_length)
         print(self.name + ": LaLeLu... I'm singing one of the human songs...")
+        self.communicator.send("/" + self.name, "LaLeLu... I'm singing one of the human songs...")
         self.sing(human_pcm)
 
     def sing_machine_song(self, max_length_in_seconds=20):
         print(self.name + ": Let me compose a new song...")
+        self.communicator.send("/" + self.name, "Let me compose a new song...")
+
         random_x = ((np.random.rand() * 2) - 1) * (
                     self.order_autoencoder.latent_x_max - self.order_autoencoder.latent_x_min)
         random_y = ((np.random.rand() * 2) - 1) * (
@@ -104,19 +115,24 @@ class Conversator:
                                                             win_length=self.win_length)
 
         print(self.name + ": BriiBrazzzFuaazz... I'm singing a machine song.")
+        self.communicator.send("/" + self.name, "BriiBrazzzFuaazz... I'm singing a machine song.")
         self.sing(pcm_data)
 
     def sing_variation_of_last_heard(self, var_amount=1):
         print(self.name + ": ZiiiSch... I'm singing a variation of the last song.")
+        self.communicator.send("/" + self.name, "ZiiiSch... I'm singing a variation of the last song.")
+
         if self.last_song_variation is not None:
             self.sing(self.last_song_variation)
         else:
             print(self.model_name + ": Upps, i didn't think about a variation.")
+            self.communicator.send("/" + self.name, "Upps, i didn't think about a variation.")
 
     def quiet_please(self):
         while time.time() < self.start_time + self.current_song_duration + 1:
             pass
         print(self.name + ": I'm done singing my song. Did you like it?")
+        self.communicator.send("/" + self.name + "Done", "I'm done singing my song. Did you like it?")
         self.currently_singing = False
 
     """
@@ -128,6 +144,7 @@ class Conversator:
 
     def listen(self):
         print(self.name + ": Ohhuu... I'm listening to nice machine music...")
+        self.communicator.send("/" + self.name + "Waits", "Ohhuu... I'm listening to nice machine music...")
         self.last_song_imitation, spectos = Snippets.pcm_to_pcm(model=self.snippet_autoencoder,
                                                                 data=self.last_song_heard,
                                                                 min_size_fraction=self.min_size_fraction,
@@ -143,7 +160,8 @@ class Conversator:
         return spectos
 
     def think_about_variation(self, var_amount=1):
-        print(self.name + ": Mhhh... Interesting Song, let me think about a variation of that...")
+        print(self.name + ": Mhhh... Interesting Song...")
+        self.communicator.send("/" + self.name + "Waits", "Mhhh... Interesting Song! Let me think about a variation...")
         self.last_song_variation, spectos = Snippets.pcm_to_pcm(model=self.snippet_autoencoder,
                                                                 data=self.last_song_heard,
                                                                 min_size_fraction=self.min_size_fraction,
@@ -166,7 +184,7 @@ class Conversator:
 
     def dream(self, batch_size=32, epochs=20, ):
         print(self.name + ": ZzzZzz I'm dreaming about all the music i've heard...")
-
+        self.communicator.send("/" + self.name + "Sleeps", "ZzzZzz I'm dreaming about all the music i've heard...")
         # Retrain the Snippet-Autoencoder
         x_train = np.asarray(self.remembered_spectos)
         self.snippet_autoencoder.train(x_train, x_train, batch_size=batch_size, num_epochs=epochs)
@@ -187,6 +205,8 @@ if __name__ =="__main__":
     valerio_order_model_path = os.path.join("data_and_models/4.0_256", "DA_Vocals_song_orders")
     dennis_order_model_path = os.path.join("data_and_models/2.0_128", "DA_Vocals_song_orders")
 
+    communicator = Communicator()
+
     valerio = Conversator(
         snippet_model_path=valerio_snippet_model_path,
         order_model_path=valerio_order_model_path,
@@ -196,7 +216,8 @@ if __name__ =="__main__":
         n_fft=690 * 2,
         win_length=690 * 2,
         sample_rate=44100,
-        name="Valerio")
+        name="Valerio",
+        communicator=communicator)
 
     dennis = Conversator(
         snippet_model_path=dennis_snippet_model_path,
@@ -207,7 +228,8 @@ if __name__ =="__main__":
         n_fft=690 * 2,
         win_length=690 * 2,
         sample_rate=44100,
-        name="Dennis")
+        name="Dennis",
+        communicator=communicator)
 
     valerio.partner = dennis
     dennis.partner = valerio
@@ -219,9 +241,8 @@ if __name__ =="__main__":
     song_orders_path = os.path.join("data_and_models",
                                     "2.0_128/VAE_Vocals_128D_45160samples_40Epochs_song_order500.npy")
 
-    communicator = Communicator()
-    steps = 2
-    sub_steps = 20
+    steps = 20
+    sub_steps = 1
     count = 1
 
 
@@ -229,33 +250,21 @@ if __name__ =="__main__":
     for j in range(steps):
 
         dennis.sing_human_song(song_orders_path, 20, 40)
-        communicator.send("/dennis", "LaLeLu... I'm singing one of the human songs...")
         valerio.think_about_variation(var_amount=1)
-        communicator.send("/valerio", "Mhhh... Interesting Song, let me think about a variation of that...")
         dennis.quiet_please()
 
         for i in range(sub_steps):
             print("iteration " + str(count) + " of " + str(steps * sub_steps))
-            communicator.send("/iteration", str(sub_steps-1) + " variations until next song.")
+            communicator.send("/iteration", str(count))
             valerio.sing_variation_of_last_heard()
-            communicator.send("/valerio", "ZiiiSch... I'm singing a variation of the last song.")
-            dennis.think_about_variation(var_amount=0.1)
-            communicator.send("/dennis", "Mhhh... Interesting Song, let me think about a variation of that...")
+            dennis.think_about_variation(var_amount=0.01)
             valerio.quiet_please()
             dennis.sing_variation_of_last_heard()
-            communicator.send("/dennis", "ZiiiSch... I'm singing a variation of the last song.")
 
             if not i == sub_steps - 1:
-                valerio.think_about_variation(var_amount=0.2)
-                communicator.send("/valerio", "Mhhh... Interesting Song, let me think about a variation of that...")
+                valerio.think_about_variation(var_amount=0.005)
                 dennis.quiet_please()
             count += 1
 
-
-        communicator.send("/valerio", "ZzzZzz I'm dreaming about all the music i've heard...")
-        communicator.send("/dennis", " ")
         valerio.dream()
-
-        communicator.send("/dennis", "ZzzZzz I'm dreaming about all the music i've heard...")
-        communicator.send("/valerio ", " ")
         dennis.dream()
