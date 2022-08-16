@@ -75,8 +75,12 @@ class Conversator:
         print(self.name + ": Let me remember that human song...")
         self.communicator.send("/" + self.name, "Let me remember that human song...")
         song_orders = np.load(song_orders_path, allow_pickle=True)
+
         human_song = song_orders[np.random.randint(0, song_orders.shape[0])]
         human_song = human_song[int(start_in_secs * self.min_size_fraction):int(end_in_secs * self.min_size_fraction)]
+
+        print("Song Shape: " + str(human_song.shape))
+
         human_pcm, _ = Snippets.latent_representation_to_pcm(latent_representations=human_song,
                                                              model=self.snippet_autoencoder,
                                                              hop_length=self.hop_length,
@@ -144,7 +148,7 @@ class Conversator:
 
     def listen(self):
         print(self.name + ": Ohhuu... I'm listening to nice machine music...")
-        self.communicator.send("/" + self.name + "Waits", "Ohhuu... I'm listening to nice machine music...")
+        self.communicator.send("/" + self.name + "Waits", "Ohhuu... Nice machine music... Let me try to imitate that!")
         self.last_song_imitation, spectos = Snippets.pcm_to_pcm(model=self.snippet_autoencoder,
                                                                 data=self.last_song_heard,
                                                                 min_size_fraction=self.min_size_fraction,
@@ -199,11 +203,15 @@ if __name__ =="__main__":
     """ Load Models """
     """ ============ """
 
-    valerio_snippet_model_path = os.path.join("data_and_models/4.0_256", "VAE_Vocals_128D_17388samples_20Epochs")
-    dennis_snippet_model_path = os.path.join("data_and_models/2.0_128", "VAE_Vocals_128D_45160samples_40Epochs")
+    valerio_snippet_model_path = os.path.join("data_and_models/2.0_128", "VAE_LedZep128D_25140samples_40Epochs")
+    dennis_snippet_model_path = os.path.join("data_and_models/2.0_128", "VAE_beatles128D_50950samples_20Epochs")
+    dennis_song_orders_path = os.path.join("data_and_models//2.0_128",
+                                           "VAE_beatles128D_50950samples_20Epochs_song_orderbeatles.npy")
+    valerio_song_orders_path = os.path.join("data_and_models//2.0_128",
+                                           "VAE_LedZep128D_25140samples_40Epochs_song_orderLedZep_40.npy")
 
-    valerio_order_model_path = os.path.join("data_and_models/4.0_256", "DA_Vocals_song_orders")
-    dennis_order_model_path = os.path.join("data_and_models/2.0_128", "DA_Vocals_song_orders")
+    valerio_order_model_path = None
+    dennis_order_model_path = None
 
     communicator = Communicator()
 
@@ -211,7 +219,7 @@ if __name__ =="__main__":
         snippet_model_path=valerio_snippet_model_path,
         order_model_path=valerio_order_model_path,
         partner=None,
-        min_size_fraction=0.25,
+        min_size_fraction=0.5,
         hop_length=690,
         n_fft=690 * 2,
         win_length=690 * 2,
@@ -238,8 +246,6 @@ if __name__ =="__main__":
     """ START THE LOOP """
     """ ============== """
 
-    song_orders_path = os.path.join("data_and_models",
-                                    "2.0_128/VAE_Vocals_128D_45160samples_40Epochs_song_order500.npy")
 
     steps = 20
     sub_steps = 1
@@ -249,22 +255,44 @@ if __name__ =="__main__":
 
     for j in range(steps):
 
-        dennis.sing_human_song(song_orders_path, 20, 40)
-        valerio.think_about_variation(var_amount=1)
-        dennis.quiet_please()
+        communicator.send("/iteration", str(count))
+        print("iteration " + str(count) + " of " + str(steps * sub_steps))
 
         for i in range(sub_steps):
             print("iteration " + str(count) + " of " + str(steps * sub_steps))
             communicator.send("/iteration", str(count))
-            valerio.sing_variation_of_last_heard()
-            dennis.think_about_variation(var_amount=0.01)
-            valerio.quiet_please()
-            dennis.sing_variation_of_last_heard()
 
-            if not i == sub_steps - 1:
-                valerio.think_about_variation(var_amount=0.005)
-                dennis.quiet_please()
+            # Start with a human song
+            dennis.sing_human_song(dennis_song_orders_path, 20, 40)
+            valerio.listen()
+            dennis.quiet_please()
+
+            # Answer with an Imitation
+            valerio.sing_last_heard_song()
+            dennis.think_about_variation(var_amount=0.8)
+            valerio.quiet_please()
+
+            # Continue with a Variation
+            dennis.sing_variation_of_last_heard()
+            dennis.quiet_please()
+
+            # Switch roles
+            # Start with a human song
+            valerio.sing_human_song(valerio_song_orders_path, 20, 40)
+            dennis.listen()
+            valerio.quiet_please()
+
+            # Answer with an Imitation
+            dennis.sing_last_heard_song()
+            valerio.think_about_variation(var_amount=0.8)
+            dennis.quiet_please()
+
+            # Continue with a Variation
+            valerio.sing_variation_of_last_heard()
+            valerio.quiet_please()
+
             count += 1
 
-        valerio.dream()
+        # Retrain Models
         dennis.dream()
+        valerio.dream()

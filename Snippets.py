@@ -137,8 +137,10 @@ class Snippets:
 
     @classmethod
     def specto_to_pcm(cls, model, data, hop_length, n_fft, win_length, variation=0):
+
         latent_representation = model.encoder.predict(data)
         latent_representation += np.random.normal(0, variation, latent_representation.shape)
+
         reconstructed_pcm, reconstructed_specto = cls.latent_representation_to_pcm(
             latent_representations=latent_representation,
             model=model,
@@ -164,26 +166,31 @@ class Snippets:
         clipped_spectos = []
         for i, specto in enumerate(spectos):
             reshaped_specto = specto[:, :, 0]
+            print("\n\noriginal max: " + str(reshaped_specto.max()))
             denorm_specto = cls._denormalise(reshaped_specto, 0, 1, -100, 100)
+            print("denorm max: " + str(denorm_specto.max()))
             clipped_specto = np.clip(denorm_specto, -100, 20)
             lin_specto = librosa.db_to_power(clipped_specto)
-            # print("\n\nmax: " + str(lin_specto.max()))
-            # print("min: " + str(lin_specto.min()))
-            # print("mean: " + str(np.mean(lin_specto)))
+            print("Shape of Lin Specto: " + str(lin_specto.shape))
+            print("max: " + str(lin_specto.max()))
+            print("min: " + str(lin_specto.min()))
+            print("mean: " + str(np.mean(lin_specto)))
 
-            # start_time = time.time()
-            # print("Start Transform")
+            start_time = time.time()
+            print("Start Transform")
             stft = librosa.feature.inverse.mel_to_stft(M=lin_specto,
                                                        sr=44100,
                                                        n_fft=n_fft,
                                                        fmax=16000)
-            # stft_time = time.time()
-            # print("Transformed to stft in " + str(time.time() - start_time))
+
+            stft_time = time.time()
+            print("Transformed to stft in " + str(time.time() - start_time))
+            print("Shape of STFT: " + str(stft.shape))
             pcm = librosa.griffinlim(S=stft,
                                      hop_length=hop_length,
-                                     win_length=win_length,
-                                     n_iter=32)
-            # print("Transformed to pcm in " + str(time.time() - stft_time))
+                                     win_length=win_length)
+            print("Transformed to pcm in " + str(time.time() - stft_time))
+            print("Shape of pcm: " + str(pcm.shape))
             signal = cls._cut_zero_crossings(pcm)
 
             if i > 0:
