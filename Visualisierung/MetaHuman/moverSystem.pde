@@ -16,10 +16,10 @@ PFont font;
     center = new Mover(new PVector(0,0), centerGrav, new PVector(0,0));
     radius = rad;
     amp=0.01;
-    text = "Test";
+    text = "";
     drawLine = lineStyle;
     name = nam;
-    font = createFont("Cascadia Mono", 14, true);
+    font = createFont("Liberation Mono", 14, true);
     
     for(int i = 0; i<size; i++){
       PVector posMover, velMover;

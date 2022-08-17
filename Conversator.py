@@ -6,7 +6,7 @@ from Snippets import Snippets
 import sounddevice as sd
 import numpy as np
 import time
-
+import simpleaudio as sa
 
 
 class Conversator:
@@ -62,7 +62,10 @@ class Conversator:
         self.currently_singing = True
         self.partner.last_song_heard = song
         #display(Audio(song, autoplay=True, rate=self.sr))
-        sd.play(song, self.sr)
+        #sd.play(song, self.sr)
+        audio = song*32767
+        audio = audio.astype(np.int16)
+        sa.play_buffer(audio, 1, 2, self.sr)
         self.current_song_duration = song.shape[0] / self.sr
         self.start_time = time.time()
 
@@ -74,6 +77,7 @@ class Conversator:
     def sing_human_song(self, song_orders_path, start_in_secs, end_in_secs):
         print(self.name + ": Let me remember that human song...")
         self.communicator.send("/" + self.name, "Let me remember that human song...")
+        self.communicator.send("/" + self.name + "Band","")
         song_orders = np.load(song_orders_path, allow_pickle=True)
 
         human_song = song_orders[np.random.randint(0, song_orders.shape[0])]
@@ -135,9 +139,13 @@ class Conversator:
     def quiet_please(self):
         while time.time() < self.start_time + self.current_song_duration + 1:
             pass
-        print(self.name + ": I'm done singing my song. Did you like it?")
-        self.communicator.send("/" + self.name + "Done", "I'm done singing my song. Did you like it?")
-        self.currently_singing = False
+        self.check_end_of_singing()
+
+    def check_end_of_singing(self):
+        if not time.time() < self.start_time + self.current_song_duration + 1:
+            print(self.name + ": I'm done singing my song. Did you like it?")
+            self.communicator.send("/" + self.name + "Done", "I'm done singing my song. Did you like it?")
+            self.currently_singing = False
 
     """
     ========
@@ -147,15 +155,16 @@ class Conversator:
     """
 
     def listen(self):
-        print(self.name + ": Ohhuu... I'm listening to nice machine music...")
-        self.communicator.send("/" + self.name + "Waits", "Ohhuu... Nice machine music... Let me try to imitate that!")
+        print(self.name + ": Nice machine music! I will try to imitate that!")
+        self.communicator.send("/" + self.name + "Waits", "Nice machine music! I will try to imitate that!")
         self.last_song_imitation, spectos = Snippets.pcm_to_pcm(model=self.snippet_autoencoder,
                                                                 data=self.last_song_heard,
                                                                 min_size_fraction=self.min_size_fraction,
                                                                 hop_length=self.hop_length,
                                                                 n_fft=self.n_fft,
                                                                 win_length=self.win_length,
-                                                                var_amount=0)
+                                                                var_amount=0,
+                                                                partner=self.partner)
 
         if spectos is not None:
             self.remembered_spectos.extend(spectos)
@@ -164,7 +173,7 @@ class Conversator:
         return spectos
 
     def think_about_variation(self, var_amount=1):
-        print(self.name + ": Mhhh... Interesting Song...")
+        print(self.name + ": Mhhh... Interesting Song! Let me think about a variation...")
         self.communicator.send("/" + self.name + "Waits", "Mhhh... Interesting Song! Let me think about a variation...")
         self.last_song_variation, spectos = Snippets.pcm_to_pcm(model=self.snippet_autoencoder,
                                                                 data=self.last_song_heard,
@@ -172,7 +181,8 @@ class Conversator:
                                                                 hop_length=self.hop_length,
                                                                 n_fft=self.n_fft,
                                                                 win_length=self.win_length,
-                                                                var_amount=var_amount)
+                                                                var_amount=var_amount,
+                                                                partner=self.partner)
         if spectos is not None:
             self.remembered_spectos.extend(spectos)
         else:
@@ -195,6 +205,7 @@ class Conversator:
         path = os.path.join("data_and_models", "post_human" + self.name)
         self.snippet_autoencoder.save(path)
         self.remembered_spectos = []
+        self.snippet_autoencoder = VAE.load(path=path)
 
 
 if __name__ =="__main__":
@@ -269,22 +280,22 @@ if __name__ =="__main__":
 
             # Answer with an Imitation
             valerio.sing_last_heard_song()
-            dennis.think_about_variation(var_amount=0.8)
+            dennis.think_about_variation(var_amount=0.5)
             valerio.quiet_please()
 
             # Continue with a Variation
             dennis.sing_variation_of_last_heard()
-            dennis.quiet_please()
 
             # Switch roles
             # Start with a human song
+            dennis.quiet_please()
             valerio.sing_human_song(valerio_song_orders_path, 20, 40)
             dennis.listen()
             valerio.quiet_please()
 
             # Answer with an Imitation
             dennis.sing_last_heard_song()
-            valerio.think_about_variation(var_amount=0.8)
+            valerio.think_about_variation(var_amount=0.5)
             dennis.quiet_please()
 
             # Continue with a Variation

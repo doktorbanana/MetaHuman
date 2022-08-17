@@ -18,6 +18,8 @@ PFont smallerFont;
 
 String iteration;
 
+String band;
+
 void setup () {
   //size(1920,1080);
   fullScreen();
@@ -25,7 +27,7 @@ void setup () {
   valerio = new MoverSystem("Valerio", new PVector(width * 0.25, height * 0.55), 10, 1, 40, 50, false);
   dennis = new MoverSystem("Dennis", new PVector(width * 0.75, height * 0.55), 10, 1, 40, 50, true);
   
-  font = createFont("Cascadia Mono", 25, true);
+  font = createFont("Liberation Mono", 25, true);
   
   amp = new Amplitude(this);
   in = new AudioIn(this, 0);
@@ -45,7 +47,7 @@ void draw() {
   textFont(font);
   text("Metahuman", width/2, height/8);
   textFont(font, 14);
-  text("Iteration " + iteration, width/2, height/8 + 30);
+  text("Machine Music based on a " + band + " song.\n" + "Iteration " + iteration, width/2, height/8 + 30);
   
   switch(lastAddress){
     
@@ -89,6 +91,7 @@ void oscEvent(OscMessage msg) {
     case "/DennisSleeps":
       dennis.text = msg.get(0).toString();
       valerio.text = "";
+      
       break;
       
     case "/ValerioSleeps":
@@ -98,14 +101,22 @@ void oscEvent(OscMessage msg) {
     
     case "/ValerioDone":
       valerio.text = msg.get(0).toString();
-      dennis.text = "Let me think about a variation of that last song...";
-       break;
+      valerio.amp = 0.001;
+      lastAddress="";
+      break;
     case "/DennisDone":
       dennis.text = msg.get(0).toString();
-      valerio.text = "Let me think about a variation of that last song...";
+      dennis.amp = 0.001;
+      lastAddress="";
       break;
     case "/iteration":
       iteration = msg.get(0).toString();
+      break;
+    case "/DennisBand":
+      band = "Beatles";
+      break;
+    case "ValerioBand":
+      band = "Led Zeppelin";
       break;
   }
   

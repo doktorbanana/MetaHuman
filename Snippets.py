@@ -109,7 +109,7 @@ class Snippets:
     """
 
     @classmethod
-    def pcm_to_pcm(cls, model, data, min_size_fraction, hop_length, n_fft, win_length, var_amount=0):
+    def pcm_to_pcm(cls, model, data, min_size_fraction, hop_length, n_fft, win_length, var_amount=0,partner=None):
         spectos = cls.pcm_to_specto(pcm_data=data,
                                     min_size_fraction=min_size_fraction,
                                     hop_length=hop_length,
@@ -121,7 +121,8 @@ class Snippets:
                                        hop_length=hop_length,
                                        n_fft=n_fft,
                                        win_length=win_length,
-                                       variation=var_amount)
+                                       variation=var_amount,
+                                       partner=partner)
         return new_pcm, spectos
 
     @classmethod
@@ -136,7 +137,7 @@ class Snippets:
         return spectos
 
     @classmethod
-    def specto_to_pcm(cls, model, data, hop_length, n_fft, win_length, variation=0):
+    def specto_to_pcm(cls, model, data, hop_length, n_fft, win_length, variation=0, partner=None):
 
         latent_representation = model.encoder.predict(data)
         latent_representation += np.random.normal(0, variation, latent_representation.shape)
@@ -146,25 +147,32 @@ class Snippets:
             model=model,
             hop_length=hop_length,
             n_fft=n_fft,
-            win_length=win_length)
+            win_length=win_length,
+            partner=partner)
         return reconstructed_pcm, reconstructed_specto
 
     @classmethod
-    def latent_representation_to_pcm(cls, latent_representations, model, hop_length, n_fft, win_length):
+    def latent_representation_to_pcm(cls, latent_representations, model, hop_length, n_fft, win_length,partner=None):
         # print("Getting latent representation of the spectos...")
         reconstructed_specto = model.decoder.predict(latent_representations)
         # print("Getting PCM from spectos...")
         reconstructed_pcm, _ = cls.reconstructed_spectos_to_pcm(spectos=reconstructed_specto,
                                                                 hop_length=hop_length,
                                                                 n_fft=n_fft,
-                                                                win_length=win_length)
+                                                                win_length=win_length,
+                                                                partner=partner)
         return reconstructed_pcm, reconstructed_specto
 
     @classmethod
-    def reconstructed_spectos_to_pcm(cls, spectos, hop_length, n_fft, win_length):
+    def reconstructed_spectos_to_pcm(cls, spectos, hop_length, n_fft, win_length,partner=None):
         reconstructed_data = np.array(0)
         clipped_spectos = []
+
         for i, specto in enumerate(spectos):
+
+            if partner is not None:
+                partner.check_end_of_singing()
+
             reshaped_specto = specto[:, :, 0]
             print("\n\noriginal max: " + str(reshaped_specto.max()))
             denorm_specto = cls._denormalise(reshaped_specto, 0, 1, -100, 100)
