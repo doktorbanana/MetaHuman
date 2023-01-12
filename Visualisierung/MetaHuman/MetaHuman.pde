@@ -21,6 +21,10 @@ String iteration;
 String band;
 
 void setup () {
+  Sound.list();
+  Sound s = new Sound(this);
+  //s.inputDevice(18);
+  //s.outputDevice(22);
   //size(1920,1080);
   fullScreen();
   oscP5 = new OscP5(this, 5005);
@@ -52,14 +56,18 @@ void draw() {
   switch(lastAddress){
     
     case "Valerio":
-      valerio.amp = map((amp.analyze()*gain), 0,gain, 0.02, 0.5);
+      valerio.amp = map((amp.analyze()*gain), 0, 1, 0.02, 0.5);
       dennis.amp = 0.001;
+      println(amp.analyze());
       break;
     case "Dennis":
-      dennis.amp = map((amp.analyze()*gain), 0,gain, 0.02, 0.5);
+      dennis.amp = map((amp.analyze()*gain), 0, 1, 0.02, 0.5);
       valerio.amp = 0.001;
       break;
-   } 
+   }
+   //valerio.amp = map(amp.analyze() * gain, 0.15, 0.16, 0, 1);
+   //println(amp.analyze());
+
  }
 
 /* incoming osc message are forwarded to the oscEvent method. */

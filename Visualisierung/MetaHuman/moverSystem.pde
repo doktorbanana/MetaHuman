@@ -52,7 +52,7 @@ PFont font;
         dist = PVector.sub(center.position, mover.position);
         if(dist.mag() > radius){
           dist.normalize();
-          dist.mult(0.3);
+          dist.mult(1);
           mover.scaledVel.add(dist);
         }
       }

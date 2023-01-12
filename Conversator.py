@@ -63,7 +63,7 @@ class Conversator:
         self.partner.last_song_heard = song
         #display(Audio(song, autoplay=True, rate=self.sr))
         #sd.play(song, self.sr)
-        audio = song*32767
+        audio = song * 32000 #song * 32767
         audio = audio.astype(np.int16)
         sa.play_buffer(audio, 1, 2, self.sr)
         self.current_song_duration = song.shape[0] / self.sr
@@ -79,8 +79,8 @@ class Conversator:
         self.communicator.send("/" + self.name, "Let me remember that human song...")
         self.communicator.send("/" + self.name + "Band","")
         song_orders = np.load(song_orders_path, allow_pickle=True)
-
         human_song = song_orders[np.random.randint(0, song_orders.shape[0])]
+
         human_song = human_song[int(start_in_secs * self.min_size_fraction):int(end_in_secs * self.min_size_fraction)]
 
         print("Song Shape: " + str(human_song.shape))
@@ -205,7 +205,7 @@ class Conversator:
         path = os.path.join("data_and_models", "post_human" + self.name)
         self.snippet_autoencoder.save(path)
         self.remembered_spectos = []
-        self.snippet_autoencoder = VAE.load(path=path)
+        self.snippet_autoencoder = VAE.load(save_folder=path)
 
 
 if __name__ =="__main__":
@@ -258,8 +258,8 @@ if __name__ =="__main__":
     """ ============== """
 
 
-    steps = 20
-    sub_steps = 1
+    steps = 100
+    sub_steps = 10
     count = 1
 
 
